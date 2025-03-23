@@ -7,10 +7,11 @@ import random
 from typing import Dict, List, Tuple, Optional
 
 import spacy
+from spacy.tokens import Doc
 
 MODEL_NAME = "en_core_web_md"
 INTENTIONS_FILE = "chatbot/data/intentions.json"
-SENTENCES_FILE = "chatbot/data/sentences.txt"
+SENTENCES_FILE = "chatbot/data/sentences.json"
 
 
 class NLP:
@@ -24,12 +25,13 @@ class NLP:
         """Initialize the NLP processor with spaCy's English language model."""
         try:
             self.__spacy = spacy.load(MODEL_NAME)
-            self.__intentions = self._load_intentions(INTENTIONS_FILE)
-            self.__sentences = self._load_sentences(SENTENCES_FILE)
         except OSError:
             # If model is not found, download it first
             spacy.cli.download(MODEL_NAME)
             self.__spacy = spacy.load(MODEL_NAME)
+
+        self.__intentions = self._load_intentions(INTENTIONS_FILE)
+        self.__sentences = self._load_sentences(SENTENCES_FILE)
 
     def _load_intentions(self, file_path: str) -> Dict:
         """Load and parse the intentions JSON file.
@@ -43,22 +45,30 @@ class NLP:
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_sentences(self, file_path: str) -> Dict[str, List[str]]:
-        """Load and parse the sentences training file.
+    def _load_sentences(
+        self, file_path: str
+    ) -> tuple[Dict[str, Dict[str, List[str]]], Dict[str, List[Doc]]]:
+        """Load and parse the sentences JSON file, also create spaCy docs for patterns.
 
         Args:
-            file_path (str): Path to the sentences file
+            file_path (str): Path to the sentences JSON file
 
         Returns:
-            Dict[str, List[str]]: Dictionary mapping intents to example sentences
+            Dict[str, List[Doc]]:
+                A tuple containing the pre-computed spaCy docs
         """
-        sentences = {}
         with open(file_path, "r", encoding="utf-8") as f:
-            for line in f:
-                intent, sentence = line.strip().split(" | ")
-                if intent not in sentences:
-                    sentences[intent] = []
-                sentences[intent].append(sentence)
+            sentences_data = json.load(f)
+
+        # Pre-compute spaCy docs for all patterns
+        sentences: Dict[str, List[Doc]] = {}
+
+        for intent, data in sentences_data.items():
+            sentences[intent] = []
+            for example in data["patterns"]:
+                example_doc: Doc = self.__spacy(example.lower())
+                sentences[intent].append(example_doc)
+
         return sentences
 
     def find_best_match(self, user_input: str) -> Tuple[Optional[str], float]:
@@ -80,13 +90,11 @@ class NLP:
         best_score = 0
         best_intent = None
 
-        # Process user input
         user_doc = self.__spacy(user_input.lower())
 
-        # Compare with each intent's sentences
-        for intent, examples in self.__sentences.items():
-            for example in examples:
-                example_doc = self.__spacy(example.lower())
+        # Compare with each pre-computed example doc
+        for intent, example_docs in self.__sentences.items():
+            for example_doc in example_docs:
                 similarity = user_doc.similarity(example_doc)
 
                 if similarity > best_score:

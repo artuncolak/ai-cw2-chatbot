@@ -1,25 +1,14 @@
-from chatbot import ChatBot
+"""Main"""
+
+import uvicorn
+from api import create_app
+
+app = create_app()
 
 
 def main():
-    # Initialize the chatbot with our training data
-    chatbot = ChatBot()
-
-    print("ChatBot initialized! Type 'quit' to exit.")
-    print("-" * 50)
-
-    while True:
-        # Get user input
-        user_input = input("You: ").strip()
-
-        if user_input.lower() == "quit":
-            print("ChatBot: Goodbye!")
-            break
-
-        # Get response from chatbot
-        response = chatbot.get_response(user_input)
-        print(f"ChatBot: {response}")
-        print("-" * 50)
+    """Run the application."""
+    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
 
 
 if __name__ == "__main__":

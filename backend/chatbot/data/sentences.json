@@ -1,0 +1,19 @@
+{
+  "time": {
+    "patterns": [
+      "What time is it?",
+      "Could you please tell me the time?",
+      "May I know the time?",
+      "Would you mind if I ask you the Time?"
+    ]
+  },
+  "date": {
+    "patterns": [
+      "What is today's date?",
+      "What is the date today?",
+      "What day is it today?",
+      "Please may you tell me the date.",
+      "Please may you give me the date."
+    ]
+  }
+}
