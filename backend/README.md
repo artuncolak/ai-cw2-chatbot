@@ -31,7 +31,7 @@ The server will start on `http://0.0.0.0:8080` with hot-reload enabled.
 To connect to the chatbot, use the WebSocket endpoint:
 
 ```
-ws://localhost:8080/ws
+ws://localhost:8080/ws/chat
 ```
 
 You can test the WebSocket endpoint using Postman's WebSocket Client feature.
