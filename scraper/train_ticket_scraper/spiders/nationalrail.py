@@ -1,3 +1,5 @@
+# NATIONALRAIL DOES NOT RETURN VALID LINK FOR PURCHASE
+
 import scrapy
 from scrapy_playwright.page import PageMethod
 from train_ticket_scraper.items import TicketItem

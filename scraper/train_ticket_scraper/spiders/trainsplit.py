@@ -1,4 +1,4 @@
-# issues with playwright
+# ISSUES DOWNLOADING WEBPAGE: ACCESSING DYNAMIC ELEMENTS
 
 import scrapy
 from scrapy_playwright.page import PageMethod

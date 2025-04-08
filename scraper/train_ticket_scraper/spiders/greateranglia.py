@@ -1,4 +1,4 @@
-# CANNOT DOWNLOAD
+# ISSUES DOWNLOADING WEBPAGE: ERROR 403
 
 import scrapy
 from scrapy_playwright.page import PageMethod
