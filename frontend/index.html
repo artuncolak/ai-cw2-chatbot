@@ -1,46 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Title</title>
     <!-- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/typewriter-effect@latest/dist/core.js"></script>
     <style type="text/tailwindcss">
-        @theme {
-          --color-clifford: #da373d;
+      @theme {
+        --color-clifford: #da373d;
+      }
+      /* HTML: <div class="loader"></div> */
+      .loader {
+        width: 15px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: oklch(28.6% 0.066 53.813);
+        box-shadow: -20px 0px, 20px 0px oklch(28.6% 0.066 53.813);
+        animation: l18 1s infinite;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+      }
+      @keyframes l18 {
+        25% {
+          box-shadow: -20px -20px, 20px 20px;
         }
+        50% {
+          box-shadow: 0px -20px, 0px 20px;
+        }
+        75% {
+          box-shadow: 20px -20px, -20px 20px;
+        }
+        100% {
+          box-shadow: 20px 0px, -20px 0px;
+        }
+      }
+
+      body {
+        position: relative;
+      }
     </style>
-</head>
-<body>
-    <div id="chatbot" class="p-4 flex flex-col justify-center items-center bg-zinc-300 h-screen">
-        <div class="shadow-lg p-3 w-xl h-66 min-h-170 justify-items-center backdrop-blur-xs bg-stone-500 rounded-xs">
-            <h1 class="text-3xl font-bold text-stone-200 mb-5 ">
-                TrainBot
-            </h1>
-            <div id="chat_section" class=" w-5/5 h-8/10">
-                <div  class="min-h-9/10 bg-zinc-100 rounded-xs">
-                    <ul id="messages" class="list none p-2 flex flex-col overflow-y-auto max-h-110">
-                        <li class="break-normal my-2 p-2 bg-stone-300 w-fit shadow-lg max-w-4/5 font-semibold text-stone-700 rounded-md">Hi, how are you ?</li>
-                        <li class="break-normal my-2 p-2 bg-stone-300 w-fit self-end max-w-4/5 shadow-lg text-stone-700 font-semibold rounded-md">I am good, how are you ?</li>
-                        <li class="break-normal my-2 p-2 bg-stone-300 w-fit max-w-4/5 shadow-lg font-semibold text-stone-700 rounded-md">Lorem ipsum dolor sit amet.</li>
-                        <li class="break-normal my-2 p-2 bg-stone-300 w-fit max-w-4/5 self-end shadow-lg font-semibold text-stone-700 rounded-md">Lorem ipsum, dolor sit amet consectetur adipisici</li>
-
-                        
-
-
-                    </ul>
-                </div>
-                <hr>
-                <div id="input" class="bg-zinc-100 border-t-5 border-t-stone-500 rounded-xs">
-                    <input @keyup.enter="startTyping" type="text" v-model="userMsg" name="" id="chatInput" class="w-full outline-none py-5 text-start text-lg font-semibold p-1 caret-stone-800 text-stone-700">
-                </div>
-                <p id="shit"></p>
-            </div>
+  </head>
+  <body>
+    <div
+      id="chatbot"
+      class="p-4 flex flex-col justify-center items-center bg-zinc-300 h-screen"
+    >
+      <div
+        class="shadow-lg p-3 w-xl h-66 min-h-170 justify-items-center backdrop-blur-xs bg-stone-500 rounded-xs"
+      >
+        <h1 class="text-3xl font-bold text-stone-200 mb-5">TrainBot</h1>
+        <div class="loader"></div>
+        <div id="chat_section" class="w-5/5 h-8/10">
+          <div class="min-h-9/10 bg-zinc-100 rounded-xs">
+            <ul
+              id="messages"
+              class="list none p-2 flex flex-col overflow-y-auto max-h-110"
+            ></ul>
+          </div>
+          <hr />
+          <div
+            id="input"
+            class="bg-zinc-100 border-t-5 border-t-stone-500 rounded-xs"
+          >
+            <input
+              type="text"
+              name=""
+              id="chatInput"
+              class="w-full outline-none py-5 text-start text-lg font-semibold p-1 caret-stone-800 text-stone-700"
+            />
+          </div>
+          <p id="info" class="text-stone-300 font-semibold italic"></p>
         </div>
+      </div>
     </div>
 
-<!-- <script type="module">
+    <!-- <script type="module">
     import { createApp, ref, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
     //   const { createApp, ref } = Vue
     // import { } from 'vue'
@@ -73,56 +109,140 @@
 }
 }).mount('#chatbot')
 </script> -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var typewriter = new Typewriter(document.getElementById('shit'), {
-  loop: true,
-  delay: 75,
-});
+    <script>
+      let conversationId = "";
+      let ws;
+      let typewriter;
+      let messageList = document.getElementById("messages");
+      let chatInput = document.getElementById("chatInput");
+      let info = document.getElementById("info");
+      document.addEventListener("DOMContentLoaded", function () {
+        typewriter = new Typewriter(info, {
+          loop: false,
+          delay: 75,
+        });
 
-typewriter
-  .pauseFor(1500)
-  .typeString('A simple yet powerful native javascript')
-  .pauseFor(300)
-  .deleteChars(10)
-  .pauseFor(1000)
-  .start()
-    });
-</script>
-<script>
-      const ws = new WebSocket(`ws://localhost:8080/ws/api`)
-        ws.binaryType = "blob"
+        typewriter
+          .pauseFor(1100)
+          .typeString("To start a conversation, type 'Hi' and press Enter.")
+          .pauseFor(1500)
+          .deleteChars(50)
+          .pauseFor(1000)
+          .start();
 
-        ws.addEventListener("open", event => {
-            console.log("Websocket connection opened")
-        })
+        startConversation();
+        hideInfo();
+      });
 
-        ws.addEventListener("close", event => {
-            console.log("Websocket connection closed")
-        })
+      chatInput.addEventListener("keyup", (e) => {
+        const input = chatInput.value;
+        if (e.keyCode === 13) {
+          hideLoader()
+
+          const msg = createMessageNode(false);
+          msg.innerHTML = input;
+
+          messageList.appendChild(msg);
+          ws.send(input);
+
+          chatInput.value = "";
+          
+          
+        }
+      });
+
+      const startConversation = async () => {
+        const url = "http://localhost:8080/api/conversations";
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+          });
+
+          if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+          }
+
+          const json = await response.json();
+          conversationId = json.id;
+          setUpSockets();
+        } catch (e) {
+          console.log(e.message);
+          alert("Please REFRESH: " + e.message);
+        }
+      };
+
+      const setUpSockets = () => {
+        ws = new WebSocket(
+          `ws://localhost:8080/api/conversations/${conversationId}`
+        );
+        ws.binaryType = "blob";
+
+        ws.addEventListener("open", (event) => {
+          console.log("Websocket connection opened");
+        });
+
+        ws.addEventListener("close", (event) => {
+          console.log("Websocket connection closed");
+        });
 
         ws.onmessage = (message) => {
-            const msg = document.createElement('li')
-            msg.classList.add('break-normal my-2 p-2 bg-stone-300 w-fit shadow-lg max-w-4/5 font-semibold text-stone-700 rounded-md')
-            if (message.data instanceof Blob) {
-                reader = new FileReader()
-                reader.onload = () => {
-                    msg.innerHTML = reader.result
-                    document.getElementById('messages').appendChild(msg)
-                }
-            } else {
-                console.log(message.data)
-                msg.innerHTML = message.data
-                document.getElementById('messages').appendChild(msg)
-            }
-        }
+          const msg = createMessageNode();
 
-        // on pressing enter on input
-        const sendMessage = () => {
-            const sendMsg = document.getElementById('chatInput').ariaValueMax
-            ws.send(sendMessage)
-            document.getElementById('chatInput').value = ""
+          if (message.data instanceof Blob) {
+            reader = new FileReader();
+            reader.onload = () => {
+              msg.innerHTML = reader.result;
+            };
+          } else {
+            console.log(message.data);
+            msg.innerHTML = message.data;
+          }
+          messageList.appendChild(msg);
+          checkWSClose(msg.innerHTML)
+        };
+
+        
+      };
+
+      const createMessageNode = (isReceived = true) => {
+        const node = document.createElement("li");
+        const selfEndClass = isReceived ? "self-end" : "self-start";
+        node.classList.add(
+          "break-normal",
+          "my-2",
+          "p-2",
+          "bg-stone-300",
+          "w-fit",
+          "shadow-lg",
+          "max-w-4/5",
+          "font-semibold",
+          "text-stone-700",
+          "rounded-md"
+        );
+        node.classList.add(selfEndClass);
+        return node;
+      };
+
+      const hideInfo = () => {
+        setTimeout(() => {
+          info.style.display = "none";
+        }, 14000);
+      };
+
+
+      const hideLoader = (hide = true) => {
+        const status = hide ? 'none' : 'block'
+        document.querySelector('.loader').style.display = status
+      }
+
+      const checkWSClose = (value) => {
+        if (value.toLowerCase().includes('bye')) {
+          ws.close()
+          chatInput.setAttribute('disabled',true)
+          info.innerHTML = "Thank you, the chat is over! Please refresh, to start a new chat."
+          info.style.display = "block"
         }
-</script>
-</body>
+      }
+    </script>
+  </body>
 </html>
