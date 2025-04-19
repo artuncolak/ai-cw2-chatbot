@@ -38,7 +38,7 @@
       }
 
       body {
-        position: relative;
+        position: relative;       
       }
     </style>
   </head>
@@ -116,20 +116,12 @@
       let messageList = document.getElementById("messages");
       let chatInput = document.getElementById("chatInput");
       let info = document.getElementById("info");
+      let chatSection = document.getElementById("chat_section")
       document.addEventListener("DOMContentLoaded", function () {
-        typewriter = new Typewriter(info, {
-          loop: false,
-          delay: 75,
-        });
+        
 
-        typewriter
-          .pauseFor(1100)
-          .typeString("To start a conversation, type 'Hi' and press Enter.")
-          .pauseFor(1500)
-          .deleteChars(50)
-          .pauseFor(1000)
-          .start();
-
+        chatInput.setAttribute('disabled',true)
+        chatSection.style.display = "none";
         startConversation();
         hideInfo();
       });
@@ -164,6 +156,7 @@
 
           const json = await response.json();
           conversationId = json.id;
+          
           setUpSockets();
         } catch (e) {
           console.log(e.message);
@@ -179,6 +172,10 @@
 
         ws.addEventListener("open", (event) => {
           console.log("Websocket connection opened");
+          alert("Connection successful")
+          chatInput.removeAttribute('disabled')
+          chatSection.style.display = "block"
+          startTypewriter()
         });
 
         ws.addEventListener("close", (event) => {
@@ -199,6 +196,9 @@
           }
           messageList.appendChild(msg);
           checkWSClose(msg.innerHTML)
+          messageList.lastElementChild.scrollIntoView({
+            behavior: "smooth"
+          });
         };
 
         
@@ -242,6 +242,22 @@
           info.innerHTML = "Thank you, the chat is over! Please refresh, to start a new chat."
           info.style.display = "block"
         }
+      }
+
+
+      const startTypewriter = () => {
+        typewriter = new Typewriter(info, {
+          loop: false,
+          delay: 75,
+        });
+
+        typewriter
+          .pauseFor(1100)
+          .typeString("To start a conversation, type 'Hi' and press Enter.")
+          .pauseFor(1500)
+          .deleteChars(50)
+          .pauseFor(1000)
+          .start();
       }
     </script>
   </body>

@@ -9,3 +9,6 @@
 * As it is loaded, it will create a new conversation by making POST request.
 * On success, the socket connection is established.
 * Maybe we can add closing the connection as well.
+
+### command for FE
+C:\Users\gurji\.local\bin\uv.exe run main.py
