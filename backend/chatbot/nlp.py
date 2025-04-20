@@ -9,6 +9,10 @@ from typing import Dict, List, Tuple, Optional
 import spacy
 from spacy.tokens import Doc
 
+from spacy.matcher import Matcher
+
+from .task1 import Task1
+
 MODEL_NAME = "en_core_web_md"
 INTENTIONS_FILE = "chatbot/data/intentions.json"
 SENTENCES_FILE = "chatbot/data/sentences.json"
@@ -29,7 +33,7 @@ class NLP:
             # If model is not found, download it first
             spacy.cli.download(MODEL_NAME)
             self.__spacy = spacy.load(MODEL_NAME)
-
+        self.__task1 = Task1()
         self.__intentions = self._load_intentions(INTENTIONS_FILE)
         self.__sentences = self._load_sentences(SENTENCES_FILE)
 
@@ -81,6 +85,48 @@ class NLP:
             Tuple[Optional[str], float]: Best matching intent and its confidence score
         """
         # First check basic intentions using pattern matching
+
+
+        user_doc = self.__spacy(user_input.lower())
+        matcher = Matcher(self.__spacy.vocab)
+        source_pattern = [{"LOWER": "source"}]
+        destination_pattern = [{"LOWER": "destination"}]
+        date_pattern = [{"ENT_TYPE": "DATE"},{"ENT_TYPE": "DATE"}]
+        time_pattern = [{"ENT_TYPE": "TIME"}]
+
+        matcher.add('source',[source_pattern])
+        matcher.add('destination',[destination_pattern])
+        matcher.add("date", [date_pattern])
+        matcher.add("time", [time_pattern])
+
+        matches = matcher(user_doc)
+        for match_id, start, end in matches:
+            string_id = self.__spacy.vocab.strings[match_id]
+            span  = user_doc[start:end]
+            print("Match", match_id, span.text, string_id)
+
+            if string_id == "date":
+                self.__task1.set_date_of_travel(span.text)
+
+            if string_id == "time":
+                self.__task1.set_time_of_travel(span.text)
+
+            if string_id == "source":
+                for token in user_doc:
+                    if token.ent_type_ == "GPE":
+                        self.__task1.set_source_station(token.text)
+
+            if string_id == "destination":
+                for token in user_doc:
+                    if token.ent_type_ == "GPE":
+                        self.__task1.set_destination_station(token.text)
+
+
+        print(self.__task1.get_time_of_travel())
+        print(self.__task1.get_date_of_travel())
+        print(self.__task1.get_source_station())
+        print(self.__task1.get_destination_station())
+
         user_input_lower = user_input.lower()
         for intent, data in self.__intentions.items():
             if any(pattern in user_input_lower for pattern in data["patterns"]):
@@ -101,7 +147,11 @@ class NLP:
                     best_score = similarity
                     best_intent = intent
 
+        print("best score:", best_score)
+
         return best_intent, best_score
+
+
 
     def process_basic_intentions(self, intent: str) -> str:
         """

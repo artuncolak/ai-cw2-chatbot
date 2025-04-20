@@ -47,6 +47,9 @@ class ChatBot:
         if not intent or confidence < CONFIDENCE_THRESHOLD:
             return "I'm not sure I understand. Could you please rephrase that?"
 
+        print("intent:", intent)
+        print("confidence:", confidence)
+        print("confidence:", confidence)
         # Handle time and date intents
         match intent:
             case "time":
