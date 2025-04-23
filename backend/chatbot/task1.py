@@ -4,10 +4,11 @@
 class Task1:
 
     def __init__(self):
-        self.destination_station = ''
-        self.source_station = ''
-        self.time_of_travel = ''
-        self.date_of_travel = ''
+        self.destination_station = None
+        self.source_station = None
+        self.time_of_travel = None
+        self.date_of_travel = None
+
 
 
     def get_destination_station(self):

@@ -58,3 +58,6 @@ class ChatBot:
                 return f"Today is {self._get_current_date()}"
             case _:
                 return self.__nlp.process_basic_intentions(intent)
+
+    def get_engine_response(self, response: str) -> str:
+        return response
