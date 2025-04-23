@@ -47,6 +47,9 @@ class ChatBot:
         if not intent or confidence < CONFIDENCE_THRESHOLD:
             return "I'm not sure I understand. Could you please rephrase that?"
 
+        print("intent:", intent)
+        print("confidence:", confidence)
+        print("confidence:", confidence)
         # Handle time and date intents
         match intent:
             case "time":
@@ -55,3 +58,6 @@ class ChatBot:
                 return f"Today is {self._get_current_date()}"
             case _:
                 return self.__nlp.process_basic_intentions(intent)
+
+    def get_engine_response(self, response: str) -> str:
+        return response

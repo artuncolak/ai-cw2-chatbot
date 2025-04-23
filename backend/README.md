@@ -71,3 +71,9 @@ You can test the WebSocket connections using tools like:
 - `api/` - FastAPI application and WebSocket handlers
 - `chatbot/` - Chatbot implementation and NLP processing
 - `main.py` - Application entry point
+
+## FrozenDict error 
+- caused by dependency in experta package
+- go to the file .venv>Lib>frozendict>init.py
+- line number 16
+  - change `collections.Mapping` to `collections.abc.Mapping` in class definition

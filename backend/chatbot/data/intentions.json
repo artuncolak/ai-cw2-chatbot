@@ -18,5 +18,53 @@
       "You're welcome",
       "My pleasure"
     ]
+  },
+  "ticket": {
+    "patterns": ["train","ticket"],
+    "responses": [
+      "Sure, what is the source station?",
+      "Sure, where you are going to start from?",
+      "Sure, from which station the journey begins?"
+    ]
+  },
+  "source": {
+    "patterns": ["source","begins","starting station","start the travel", "starting from"],
+    "responses": [
+      "Noted, what is the destination?",
+      "Understood, where you want to go?",
+      "Sure, where is your destination?"
+    ]
+  },
+  "destination": {
+    "patterns": ["destination","end station","journey ends on","stop at","final","ends"],
+    "responses": [
+      "Alright, can you tell me the date of journey?",
+      "Understood, what is the date of your travel?",
+      "Sure, when you are planning to go?"
+    ]
+  },
+  "date of travel": {
+    "patterns": ["travel","travelling","date of travel","date of journey"],
+    "responses": [
+      "Alright, can you tell me the time you want to leave?",
+      "Understood, what is the starting time of your travel?",
+      "Sure, when you are planning to leave?"
+    ]
+  },
+  "time of travel": {
+    "patterns": ["time","start at","starting time","leaving","time of travel","time of journey"],
+    "responses": [
+      "Alright, let me find a ticket for you. Please wait...",
+      "Understood, Looking for the cheapest ticket for you. Please wait...",
+      "Sure, please wait..."
+    ]
+  },
+  "info": {
+    "patterns": ["info","information"],
+    "responses": [
+      "I will need more info on search parameters",
+      "Just few more things to figure out before the search",
+      "I need information for the search"
+    ]
   }
 }

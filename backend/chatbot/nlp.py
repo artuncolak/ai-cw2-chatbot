@@ -9,6 +9,12 @@ from typing import Dict, List, Tuple, Optional
 import spacy
 from spacy.tokens import Doc
 
+from spacy.matcher import Matcher
+
+from .task1 import Task1
+from engine import engine_response, ExpertaResponse
+
+
 MODEL_NAME = "en_core_web_md"
 INTENTIONS_FILE = "chatbot/data/intentions.json"
 SENTENCES_FILE = "chatbot/data/sentences.json"
@@ -29,9 +35,11 @@ class NLP:
             # If model is not found, download it first
             spacy.cli.download(MODEL_NAME)
             self.__spacy = spacy.load(MODEL_NAME)
-
+        self.__task1 = Task1()
         self.__intentions = self._load_intentions(INTENTIONS_FILE)
         self.__sentences = self._load_sentences(SENTENCES_FILE)
+        self.__experta = ExpertaResponse()
+
 
     def _load_intentions(self, file_path: str) -> Dict:
         """Load and parse the intentions JSON file.
@@ -81,6 +89,114 @@ class NLP:
             Tuple[Optional[str], float]: Best matching intent and its confidence score
         """
         # First check basic intentions using pattern matching
+
+
+        user_doc = self.__spacy(user_input.lower())
+        matcher = Matcher(self.__spacy.vocab)
+
+        # source_pattern = [{"LOWER": "source"}]
+
+        greet_pattern = [{"LEMMA": {"IN": ["hey","hello","hi"]}}]
+
+        thank_pattern = [{"LEMMA": {"IN": ["thank","good","wow","great","awesome"]}}]
+
+        bye_pattern = [{"LEMMA": {"IN": ["done","nothing","goodbye","bye"]}}]
+
+        find_pattern = [{"LEMMA": {"IN": ["train","ticket","book","find","look"]}}]
+
+        travel_pattern = [{"LEMMA": {"IN": ["travel","journey"]}}]
+
+        station_pattern = [{"ENT_TYPE": "GPE"}, {"LOWER": "station"} ]
+        station_pattern_1 = [{"tag": "NNP"}, {"tag": "NNP"}, {"tag":"NN"}, {"LOWER": "station"} ]
+        station_pattern_2 = [{"tag": "NNP"}, {"tag": "NNP"}, {"LOWER": "station"}]
+
+
+        source_pattern = [{"LOWER": "from"}, {"ENT_TYPE": "GPE"}]
+        source_pattern_1 = [{"LEMMA": {"IN": ["source","start","begin","origin","board"]}}]
+
+        destination_pattern_2 = [{"LOWER": "to"}, {"ENT_TYPE": "GPE"}]
+        # destination_pattern = [{"LOWER": "destination"}]
+        destination_pattern = [{"LEMMA": {"IN": ["destination","end","final","stop","deboard"]}}]
+
+
+        date_pattern = [{"ENT_TYPE": "DATE"},{"ENT_TYPE": "DATE"}]
+        time_pattern = [{"ENT_TYPE": "TIME"}]
+
+        delay_pattern = [{"LEMMA": {"IN": ["delay","late"]}}]
+
+
+        matcher.add('greet', [greet_pattern])
+        matcher.add('thank', [thank_pattern])
+        matcher.add('bye', [bye_pattern])
+        matcher.add('find', [find_pattern])
+        matcher.add('travel', [travel_pattern])
+        matcher.add('station', [station_pattern,station_pattern_1,station_pattern_2])
+        matcher.add('source',[ source_pattern, source_pattern_1])
+        matcher.add('destination',[destination_pattern, destination_pattern_2])
+        matcher.add("date", [date_pattern])
+        matcher.add("time", [time_pattern])
+        matcher.add("delay", [delay_pattern])
+        #
+        # lemmatized_input = ''
+        #
+        # for token in user_doc:
+        #     lemmatized_input += token.lemma_ + ' '
+        #
+        # print('LEMMA',lemmatized_input)
+
+        matches = matcher(user_doc)
+        for match_id, start, end in matches:
+            string_id = self.__spacy.vocab.strings[match_id]
+            span  = user_doc[start:end]
+            print("Match", match_id, span.text, string_id)
+
+
+
+            if (string_id == 'find'
+                    or string_id == 'thank'
+                    or string_id == 'bye'
+                    or string_id == 'greet'
+                    or string_id == 'delay'
+                    or string_id == 'travel'):
+                engine_response(string_id)
+
+            if string_id == "date":
+                self.__task1.set_date_of_travel(span.text)
+                # engine_response(string_id.lower())
+                if self.__task1.get_time_of_travel() is None:
+                    engine_response('time')
+                else:
+                    engine_response(string_id)
+
+
+            if string_id == "time":
+                self.__task1.set_time_of_travel(span.text)
+                if self.__task1.get_date_of_travel() is None:
+                    engine_response('date')
+                else:
+                    engine_response(string_id)
+
+            if string_id == "source":
+                for token in user_doc:
+                    if token.ent_type_ == "GPE":
+                        self.__task1.set_source_station(token.text)
+                engine_response('source')
+
+            if string_id == "destination":
+                for token in user_doc:
+                    if token.ent_type_ == "GPE":
+                        self.__task1.set_destination_station(token.text)
+                engine_response('destination')
+
+        if len(matches) == 0:
+            engine_response(user_input.lower())
+
+        print(self.__task1.get_time_of_travel())
+        print(self.__task1.get_date_of_travel())
+        print(self.__task1.get_source_station())
+        print(self.__task1.get_destination_station())
+        # engine_response(user_input.lower())
+        print(self.__experta.get_engine_response())
         user_input_lower = user_input.lower()
         for intent, data in self.__intentions.items():
             if any(pattern in user_input_lower for pattern in data["patterns"]):
@@ -101,7 +217,11 @@ class NLP:
                     best_score = similarity
                     best_intent = intent
 
+        print("best score:", best_score)
+
         return best_intent, best_score
+
+
 
     def process_basic_intentions(self, intent: str) -> str:
         """

@@ -1,0 +1,10 @@
+Hi.
+I would like to book a train ticket.
+Source station would be ---
+Destination is --- [issue noted that spacy don't pick some cities as GPE as it should like Norwich, Glasgow]
+My date of travel will be <a date - April 23, 23rd April>
+I will be leaving at <time - 11:00, 11 AM, 12 PM>
+
+
+
+// in future we can add more ways to catch same context. Right now matcher matches for source and destination keywords.
