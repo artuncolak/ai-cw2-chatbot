@@ -1,14 +1,42 @@
-# NATIONALRAIL DOES NOT RETURN VALID LINK FOR PURCHASE
+# National Rail does not return valid link for purchase
+# It turns out the coursework does not specify that this is required -- just a link to the website is sufficient
+# mytrainticket
+# lner
 
 import scrapy
 from scrapy_playwright.page import PageMethod
 from train_ticket_scraper.items import TicketItem
 
+ticket_planner = {
+    "type": "single",
+    "origin": "NRW",
+    "destination": "KGX",
+    "leavingType": "departing",
+    "leavingDate": "160525",
+    "leavingHour": "13",
+    "leavingMin": "45",
+    "adults": "2",
+    "children": "1",
+    "railcards": "YNG",
+}
+
+url = (f"https://www.nationalrail.co.uk/journey-planner/?type={ticket_planner['type']}"
+		f"&origin={ticket_planner['origin']}"
+		f"&destination={ticket_planner['destination']}"
+		f"&leavingType={ticket_planner['leavingType']}"
+		f"&leavingDate={ticket_planner['leavingDate']}"
+		f"&leavingHour={ticket_planner['leavingHour']}"
+		f"&leavingMin={ticket_planner['leavingMin']}"
+		f"&adults={ticket_planner['adults']}"
+		f"&children={ticket_planner['children']}"
+		f"&railcards={ticket_planner['railcards']}%7C1"
+		f"&extraTime=0#O")
+
 class NationalRailSpider(scrapy.Spider):
 	name = 'nationalrail'
 
 	def start_requests(self):
-		url = "https://www.nationalrail.co.uk/journey-planner/?type=single&origin=NRW&destination=KGX&leavingType=departing&leavingDate=150425&leavingHour=14&leavingMin=00&adults=1&railcards=YNG%7C1#O"
+
         # type = ["single","return"]
         # note not open return
         # origin, destination = [...]
@@ -61,7 +89,6 @@ class NationalRailSpider(scrapy.Spider):
             # ]|number
         # via = [...]
         # viaType = ["via","avoid","change-at","do-not-change-at"]
-        # finish query with "#O"
 		yield scrapy.Request(url=url,
             meta={
             'playwright': True,
@@ -78,5 +105,13 @@ class NationalRailSpider(scrapy.Spider):
 			ticket_field['changeovers'] = ticket.css('div > div > div > button > p > span:last-of-type::text').get()
 			ticket_field['price'] = ticket.css('div > div > div > div > div > span:last-of-type::text').get()[1::]
 			ticket_field['leaveTime'] = ticket.css('div > div > span > time::text').get()
+			ticket_field['ticketType'] = ticket_planner['type']
+#			ticket_field['origin'] = ticket_planner['origin']
+#			ticket_field['destination'] = ticket_planner['destination']
+#			ticket_field['leaveDate'] = ticket_planner['leaveDate']
+#			ticket_field['adults'] = ticket_planner['adults']
+#			ticket_field['children'] = ticket_planner['children']
+#			ticket_field['railcards'] = ticket_planner['railcards']
+			ticket_field['url'] = url
 
 			yield ticket_field

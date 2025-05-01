@@ -8,7 +8,7 @@ class TrainSplitSpider(scrapy.Spider):
 	name = 'trainsplit'
 
 	def start_requests(self):
-		url = "https://trainsplit.com/results?FromStation=7073090&ToStation=7061210&Adults=1&OutboundDate=15%2F04%2F2025&OutboundTime=16%3A15&InboundDate=15%2F04%2F2025&InboundTime=18%3A15&UseSplits=0&Railcard=YNG&searchBy=0&firstClass=false&flexible=false&selectionMethod=Grid"
+		url = "https://trainsplit.com/results?FromStation=7073090&ToStation=7061210&Adults=1&OutboundDate=27%2F04%2F2025&OutboundTime=16%3A30&Railcard=YNG&searchBy=0&firstClass=false&flexible=false&selectionMethod=Grid"
 		yield scrapy.Request(url=url,
             meta={
             'playwright': True,

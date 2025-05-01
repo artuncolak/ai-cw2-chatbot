@@ -6,5 +6,7 @@
 # Running
 
 1. View scrapers: `scrapy list`
-2. Run scrapy project: `scrapy crawl greateranglia`
-3. Run scrapy project with visible output: `scrapy crawl greateranglia -a greateranglia.json`
+2. Run scrapy project: `scrapy crawl nationalrail`
+3. Run scrapy project with visible output: `scrapy crawl nationalrail -a nationalrail.json`
+
+Note that there are issues with greateranglia and trainsplit.  

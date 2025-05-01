@@ -8,7 +8,7 @@ class GreaterAngliaSpider(scrapy.Spider):
 	name = 'greateranglia'
 
 	def start_requests(self):
-		url = "https://www.buytickets.greateranglia.co.uk/book/results?origin=urn%3Atrainline%3Ageneric%3Aloc%3ANRW7309gb&destination=urn%3Atrainline%3Ageneric%3Aloc%3AKGX6121gb&outwardDate=2025-04-15T17%3A00%3A00&outwardDateType=arriveBefore&journeySearchType=single&passengerDiscountCards%5B%5D=eab6a7078be95d5bf04bb0b2a5ddc49efbaca253&passengers%5B%5D=1995-04-08&passengers%5B%5D=2015-04-08&passengers%5B%5D=2015-04-08&directSearch=false&transportModes%5B%5D=mixed&selectedOutward=jZC7C%2FstIqQ%3D%3A6eaFv0HuSdY%3D"
+		url = "https://www.buytickets.greateranglia.co.uk/book/results?origin=urn%3Atrainline%3Ageneric%3Aloc%3ANRW7309gb&destination=urn%3Atrainline%3Ageneric%3Aloc%3AKGX6121gb&outwardDate=2025-04-23T06%3A00%3A00&outwardDateType=departAfter&journeySearchType=single&passengerDiscountCards%5B%5D=eab6a7078be95d5bf04bb0b2a5ddc49efbaca253&passengers%5B%5D=1995-04-08&directSearch=false&transportModes%5B%5D=mixed&selectedOutward=UMLYYxBsfpc%3D%3AhMqksGWYc68%3D"
         # yourneySearchType = ["single","return"]
         # note not open return
         # origin, destination = [...]
@@ -77,9 +77,10 @@ class GreaterAngliaSpider(scrapy.Spider):
 	def parse(self, response):
 		for ticket in response.css('div > div > div > div > div > div > div > div > div > div > div > div > div > ul > li > div'):
 			ticket_field = TicketItem()
-			ticket_field['duration'] = ticket.css('div > div > div > button > div > div > div > span > span:first-of-type::text').get()
-			ticket_field['changeovers'] = ticket.css('div > div > div > button > div > div > div > div > button > span::text').get()
-			ticket_field['price'] = ticket.css('div > div > div > fieldset > div > div > div > div > div > label > div > span > span > span::text').get()[1::]
-			ticket_field['leaveTime'] = ticket.css('div > div > div > div > div > div > div > div > div > div > p > time > span::text').get()
+#			ticket_field['duration'] = ticket.css('div > div > div > button > div > div > div > span > span:first-of-type::text').get()
+#			ticket_field['changeovers'] = ticket.css('div > div > div > button > div > div > div > div > button > span::text').get()
+#			ticket_field['price'] = ticket.css('div > div > div > fieldset > div > div > div > div > div > label > div > span > span > span::text').get()[1::]
+#			ticket_field['leaveTime'] = ticket.css('div > div > div > div > div > div > div > div > div > div > p > time > span::text').get()
+			ticket_field['duration'] = "success"
 
 			yield ticket_field
