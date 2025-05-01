@@ -7,7 +7,6 @@ from config import settings
 
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=True,
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
@@ -17,6 +16,7 @@ engine = create_engine(
 def init_db():
     """Initialize the database by creating all tables"""
     SQLModel.metadata.create_all(engine)
+    print("Database initialized")
 
 
 def get_session():

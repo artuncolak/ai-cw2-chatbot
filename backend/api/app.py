@@ -10,12 +10,14 @@ from config import settings
 from chatbot.chatbot import ChatBot
 from .database import init_db
 from .routes import conversation_router
+from data import import_stations
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown."""
     init_db()
+    import_stations()
     yield
 
 
