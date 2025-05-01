@@ -77,3 +77,47 @@ You can test the WebSocket connections using tools like:
 - go to the file .venv>Lib>frozendict>init.py
 - line number 16
   - change `collections.Mapping` to `collections.abc.Mapping` in class definition
+
+## Using the Station Module
+
+The `station` module provides functionality to access railway station data:
+
+```python
+from station import StationService
+
+# Get a station by code
+london_station = StationService.get_by_code("LDN")
+if london_station:
+    print(f"Found: {london_station.name} ({london_station.code})")
+
+# Search for stations by name
+birmingham_stations = StationService.search_by_name("Birmingham")
+for station in birmingham_stations:
+    print(f"{station.name} ({station.code})")
+
+# Get all stations
+all_stations = StationService.get_all()
+print(f"Total stations: {len(all_stations)}")
+```
+
+### Importing Station Data
+
+Before using the module, you need to populate the database with station data:
+
+```bash
+cd data
+python import_stations.py
+```
+
+### Available Fields
+
+Each station record contains the following fields:
+- `id`: UUID primary key
+- `name`: Station name
+- `longname`: Full station name (if available)
+- `alpha`: Alpha code
+- `code`: Station code (main identifier)
+- `code_two`: Alternative code
+- `my_train_code`: MyTrain code
+- `anglia_code`: Anglia code
+- `national_rail_code`: National Rail code
