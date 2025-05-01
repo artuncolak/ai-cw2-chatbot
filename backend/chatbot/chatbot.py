@@ -41,23 +41,25 @@ class ChatBot:
         Returns:
             str: Chatbot's response
         """
-        intent, confidence = self.__nlp.find_best_match(user_input)
+        # intent, confidence = self.__nlp.find_best_match(user_input)
 
-        # If no intent matches or confidence is too low
-        if not intent or confidence < CONFIDENCE_THRESHOLD:
-            return "I'm not sure I understand. Could you please rephrase that?"
+        # # If no intent matches or confidence is too low
+        # if not intent or confidence < CONFIDENCE_THRESHOLD:
+        #     return "I'm not sure I understand. Could you please rephrase that?"
 
-        print("intent:", intent)
-        print("confidence:", confidence)
-        print("confidence:", confidence)
-        # Handle time and date intents
-        match intent:
-            case "time":
-                return f"The current time is {self._get_current_time()}"
-            case "date":
-                return f"Today is {self._get_current_date()}"
-            case _:
-                return self.__nlp.process_basic_intentions(intent)
+        # print("intent:", intent)
+        # print("confidence:", confidence)
+        # print("confidence:", confidence)
+        # # Handle time and date intents
+        # match intent:
+        #     case "time":
+        #         return f"The current time is {self._get_current_time()}"
+        #     case "date":
+        #         return f"Today is {self._get_current_date()}"
+        #     case _:
+        #         return self.__nlp.process_basic_intentions(intent)
+
+        return self.__nlp.find_best_match(user_input)
 
     def get_engine_response(self, response: str) -> str:
         return response
