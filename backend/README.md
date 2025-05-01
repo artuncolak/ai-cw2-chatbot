@@ -9,6 +9,7 @@
    ```
 
 2. Create a Python virtual environment and install dependencies:
+
    ```bash
    uv venv --python 3.11.11
    source .venv/bin/activate
@@ -72,7 +73,8 @@ You can test the WebSocket connections using tools like:
 - `chatbot/` - Chatbot implementation and NLP processing
 - `main.py` - Application entry point
 
-## FrozenDict error 
+## FrozenDict error
+
 - caused by dependency in experta package
 - go to the file .venv>Lib>frozendict>init.py
 - line number 16
@@ -100,18 +102,10 @@ all_stations = StationService.get_all()
 print(f"Total stations: {len(all_stations)}")
 ```
 
-### Importing Station Data
-
-Before using the module, you need to populate the database with station data:
-
-```bash
-cd data
-python import_stations.py
-```
-
 ### Available Fields
 
 Each station record contains the following fields:
+
 - `id`: UUID primary key
 - `name`: Station name
 - `longname`: Full station name (if available)
