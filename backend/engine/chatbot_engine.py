@@ -106,12 +106,12 @@ class TrainBot(KnowledgeEngine):
     @Rule(Book(input='date'))
     def say_date(self):
         # print("BOT: you have selected a date of travel.")
-        set_response('Alright. What is your time of travel?')
+        set_response('Alright. What is your date of travel?')
 
     @Rule(Book(input='time'))
     def say_time(self):
         # print("BOT: you have selected a date of travel.")
-        set_response('Alright. What is your date of travel?')
+        set_response('Alright. What is your time of travel?')
 
     @Rule(Book(input='delay'))
     def say_delay(self):
@@ -122,6 +122,14 @@ class TrainBot(KnowledgeEngine):
     def reply_travel(self):
         # print("BOT: you have selected a date of travel.")
         set_response('I am thinking about this.')
+
+    @Rule(Book(input='got_all'))
+    def say_got_all(self):
+        set_response("I got all info, Please wait while I find the cheapest ticket for you.")
+
+    @Rule(Book(input='sorry'))
+    def say_sorry(self):
+        set_response("Sorry, I have missed some of the important info.")
 
 def engine_response(user_input):
     engine = TrainBot()
