@@ -127,7 +127,8 @@ class NLP:
         ]
 
         date_pattern = [{"ENT_TYPE": "DATE"}, {"ENT_TYPE": "DATE"}]
-        time_pattern = [{"ENT_TYPE": "TIME"}]
+        time_pattern = [{"ENT_TYPE": "TIME"} ]
+        time_pattern_1 = [{"ENT_TYPE": "TIME"}, {"ENT_TYPE": "TIME"}]
 
         delay_pattern = [{"LEMMA": {"IN": ["delay", "late"]}}]
 
@@ -140,7 +141,7 @@ class NLP:
         matcher.add("source", [source_pattern, source_pattern_1])
         matcher.add("destination", [destination_pattern, destination_pattern_2])
         matcher.add("date", [date_pattern])
-        matcher.add("time", [time_pattern])
+        matcher.add("time", [time_pattern, time_pattern_1])
         matcher.add("delay", [delay_pattern])
         #
         # lemmatized_input = ''
@@ -172,19 +173,27 @@ class NLP:
                 if self.__task1.get_time_of_travel() is None:
                     engine_response("time")
                 else:
-                    engine_response(string_id)
+                     self.check_task1_missing_info()
 
             if string_id == "time":
-                self.__task1.set_time_of_travel(span.text)
+                time = ''
+                for token in user_doc:
+                    if token.ent_type_ == "TIME":
+                        print(token.text)
+                        time += token.text + ' '
+
+                self.__task1.set_time_of_travel(time)
+
                 if self.__task1.get_date_of_travel() is None:
                     engine_response("date")
                 else:
-                    engine_response(string_id)
+                    self.check_task1_missing_info()
 
             if string_id == "source":
                 for token in user_doc:
                     if token.ent_type_ == "GPE":
                         self.__task1.set_source_station(token.text)
+                        break
                 engine_response("source")
 
             if string_id == "destination":
@@ -200,6 +209,9 @@ class NLP:
         print(self.__task1.get_date_of_travel())
         print(self.__task1.get_source_station())
         print(self.__task1.get_destination_station())
+
+
+
 
         # user_input_lower = user_input.lower()
         # for intent, data in self.__intentions.items():
@@ -242,3 +254,11 @@ class NLP:
             return random.choice(self.__intentions[intent]["responses"])
 
         return "I'm not sure how to respond to that."
+
+    def check_task1_missing_info(self):
+
+        task_1_collected = self.__task1.check_what_info_missing()
+        if task_1_collected is None:
+            engine_response("got_all")
+        else:
+            engine_response(task_1_collected)

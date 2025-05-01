@@ -35,6 +35,17 @@ class Task1:
         else:
             return True
 
-    def make_api_call(self):
+    def check_what_info_missing(self):
+        if self.source_station is None:
+            return "source"
+        if self.destination_station is None:
+            return "destination"
+        if self.date_of_travel is None:
+            return "date"
+        if self.time_of_travel is None:
+            return "time"
+
+        return None
+
         # perform the scrapping
-        return
+
