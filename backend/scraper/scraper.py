@@ -3,8 +3,8 @@
 from scrapy import signals
 from scrapy.signalmanager import dispatcher
 from scrapy.crawler import CrawlerProcess
-from .spiders.nationalrail import NationalRailSpider
-from .spiders.lner import LNERSpider
+from spiders.nationalrail import NationalRailSpider
+from spiders.lner import LNERSpider
 #from ..station import StationService
 
 #https://www.lner.co.uk/buy-tickets/booking-engine/?cojid=&ocrs=NRW&dcrs=KGX&onlc=7309&dnlc=6121&vcrs=&vnlc=&nvcrs=&nvnlc=&outy=2025&outm=05&outd=16&outh=13&outmi=45&outda=y&JourneyType=returnJourney&ret=y&rety=2025&retm=05&retd=31&reth=15&retmi=45&retda=y&nad=2&nch=1&rc=YNG%2CTST&rcn=1%2C1&tto=n&editJourneyOpen=False&shouldHideJourneyPicker=False&od=Norwich&dd=London+Kings+Cross&cojcbeid=&cojcbeitemnumber=&OriginalJourneyCost=&OriginalTicketClass=&OriginalFareSignature=&OriginalOutboundJourneySignature=&OriginalInboundJourneySignature=&OriginalFareIsFlexiAdvance=&pc=&pat=
