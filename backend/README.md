@@ -14,12 +14,14 @@
    uv venv --python 3.11.11
    source .venv/bin/activate
    uv sync
+   pip install scrapy scrapy-playwright playwright
+   playwright install chromium-headless-shell
    ```
 
 3. Start PostgreSQL database using Docker:
 
    ```bash
-   docker run --name chatbot-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=chatbot -p 5432:5432 -d postgres:alpine
+   docker run --name chatbot -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=chatbot -p 5432:5432 -d postgres:alpine
    ```
 
 4. Set up environment variables:
@@ -115,3 +117,10 @@ Each station record contains the following fields:
 - `my_train_code`: MyTrain code
 - `anglia_code`: Anglia code
 - `national_rail_code`: National Rail code
+
+
+# Running scraper
+
+   ```bash
+   python backend/scraper/scraper.py
+   ```
