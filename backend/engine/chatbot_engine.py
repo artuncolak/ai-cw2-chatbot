@@ -7,18 +7,11 @@ from typing import Dict
 
 warnings.filterwarnings('ignore')
 from .experta_response import ExpertaResponse
-SENTENCES_FILE = "engine/sentences.json"
+CONTINGENCY_FILE = "engine/contingencies.json"
+WEATHER_FILE = "engine/weather_contingency.json"
 
 
-def load_intentions(file_path: str) -> Dict:
-    """Load and parse the intentions JSON file.
-
-    Args:
-        file_path (str): Path to the intentions JSON file
-
-    Returns:
-        Dict: Parsed intentions data
-    """
+def load_contingencies(file_path: str) -> Dict:
     with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
 """
@@ -53,14 +46,11 @@ Experta:
 
 final_chatbot = False
 response = ExpertaResponse()
-answer = ''
-sentences = load_intentions(SENTENCES_FILE)
-# print(sentences)
+line_block_contingencies = load_contingencies(CONTINGENCY_FILE)
+weather_contingencies = load_contingencies(WEATHER_FILE)
 
 class Greeting(Fact):  # define fact
     ''' Info about the booking ticket'''
-
-
     pass
 
 class Book(Fact):
@@ -69,10 +59,13 @@ class Book(Fact):
 class Task3(Fact):
     pass
 
-class Contingency(Fact):
+class LineContingency(Fact):
     station_one = Field(str, mandatory=True)
     station_two = Field(str, mandatory=True)
     type = Field(str, mandatory=True)
+
+class WeatherContingency(Fact):
+    pass
 
 class TrainBot(KnowledgeEngine):
 
@@ -81,33 +74,23 @@ class TrainBot(KnowledgeEngine):
         set_response('I am not sure how to respond to this question.')
         yield Fact(Greeting="I am not sure how to respond")
 
-        # for fact in sentences:
+        # for fact in contingencies:
         #     print(fact)
-        #     yield Fact(Contingency=fact)
+        #     yield Fact(LineContingency=fact)
 
     @Rule(Greeting(input='greet'))
     def greet_back(self):
-        # print("BOT: you have selected a one way ticket. Have a good trip.")
-        # if final_chatbot:
-        #     print("BOT: If you don't have any other question, you can type bye.")
         response.set_engine_response('Hi, thanks for checking in. How can I help you?')
-        # find_response("colchester-manningtree-partial")
-        # return 'Hi, thanks for checking in.'
-
 
     @Rule(Greeting(input='bye'))
     def say_bye(self):
         response.set_engine_response('Thank you for using this service,Goodbye.')
-        # if final_chatbot:
-        #     print("BOT: If you don't have any other question, you can type bye.")
 
     @Rule(Greeting(input='thank'))
     def say_thanks(self):
-        # print("BOT: you have selected a " + ticket["ticket"] + ". Have a good trip.")
+
         set_response('Happy to help. Anything else?')
-        # if final_chatbot:
-        #     print("BOT: If you don't have any other question, you can type bye.")
-        # response.set_engine_response('Happy to help.')
+
 
     @Rule(OR(Book(input='train'),Book(input='ticket'),Book(input='book')))
     def ask_source_station(self):
@@ -127,29 +110,22 @@ class TrainBot(KnowledgeEngine):
 
     @Rule(AS.user_input << Book(input=L('open') | L('return') | L('single')))
     def ticket_type(self, user_input):
-        # print("BOT: you have selected a " + user_input["input"] + ".")
         set_response("BOT: you have selected a " + user_input["input"] + ".")
-        # if final_chatbot:
-        #     print("BOT: If you don't have any other question, you can type bye.")
 
     @Rule(Book(input='date'))
     def say_date(self):
-        # print("BOT: you have selected a date of travel.")
         set_response('Alright. What is your date of travel?')
 
     @Rule(Book(input='time'))
     def say_time(self):
-        # print("BOT: you have selected a date of travel.")
         set_response('Alright. What is your time of travel?')
 
     @Rule(Book(input='delay'))
     def say_delay(self):
-        # print("BOT: you have selected a date of travel.")
         set_response('I can help you with that. Which train are you on?')
 
     @Rule(Book(input='travel'))
     def reply_travel(self):
-        # print("BOT: you have selected a date of travel.")
         set_response('I am thinking about this.')
 
     @Rule(Book(input='got_all'))
@@ -169,6 +145,12 @@ class TrainBot(KnowledgeEngine):
     def say_location(self):
         set_response("Noted. Has it caused partial or full line blockage")
 
+    @Rule(AS.user_input << WeatherContingency(input=L('frost') | L('snow') | L('flood') | L('temp') | L('wind') | L('autumn')))
+    def say_weather(self, user_input):
+        # set_response("Noted. Has it caused partial or full line blockage")
+        set_response(weather_response(user_input["input"]))
+
+
     @Rule(Task3(input='blockage'))
     def say_blockage(self):
         set_response("Understood. What would be the approximate time of incident?")
@@ -177,36 +159,77 @@ class TrainBot(KnowledgeEngine):
     def say_blockage(self):
         set_response("Understood. Please wait while I generate a response.")
 
-    # @Rule(Contingency("colchester","manningtree",Contingency(input="partial")))
+    # @Rule(LineContingency("colchester","manningtree",LineContingency(input="partial")))
     # def say_partial_1(self):
     #     set_response("colchester-manningtree-partial")
     #     find_response("colchester-manningtree-partial")
 
-    @Rule(Contingency(station_one='colchester', station_two='manningtree', type='partial'))
+    @Rule(LineContingency(station_one='colchester', station_two='manningtree', type='partial'))
     def say_partial_cm(self):
-        set_response(find_response("colchester-manningtree-partial"))
-        # find_response("colchester-manningtree-partial")
+        set_response(line_response("colchester-manningtree-partial"))
 
-    @Rule(Contingency(station_one='colchester', station_two='manningtree', type='full'))
+    @Rule(LineContingency(station_one='colchester', station_two='manningtree', type='full'))
     def say_full_cm(self):
-        set_response(find_response("colchester-manningtree-full"))
+        set_response(line_response("colchester-manningtree-full"))
 
+    @Rule(LineContingency(station_one='manningtree', station_two='ipswich', type='partial'))
+    def say_partial_mi(self):
+        set_response(line_response("manningtree-ipswich-partial"))
+
+    @Rule(LineContingency(station_one='manningtree', station_two='ipswich', type='full'))
+    def say_full_mi(self):
+        set_response(line_response("manningtree-ipswich-partial"))
+
+    @Rule(LineContingency(station_one='manningtree', station_two='ipswich', type='partial'))
+    def say_partial_cm(self):
+        set_response(line_response("manningtree-ipswich-partial"))
+
+    @Rule(LineContingency(station_one='manningtree', station_two='ipswich', type='full'))
+    def say_full_cm(self):
+        set_response(line_response("manningtree-ipswich-partial"))
+
+    @Rule(LineContingency(station_one='ipswich', station_two='stowmarket', type='partial'))
+    def say_partial_is(self):
+        set_response(line_response("ipswich-stowmarket-partial"))
+
+    @Rule(LineContingency(station_one='ipswich', station_two='stowmarket', type='full'))
+    def say_full_is(self):
+        set_response(line_response("ipswich-stowmarket-full"))
+
+    @Rule(LineContingency(station_one='stowmarket', station_two='diss', type='partial'))
+    def say_partial_sd(self):
+        set_response(line_response("stowmarket-diss-partial"))
+
+    @Rule(LineContingency(station_one='stowmarket', station_two='diss', type='full'))
+    def say_full_sd(self):
+        set_response(line_response("stowmarket-diss-full"))
+
+    @Rule(LineContingency(station_one='diss', station_two='norwich', type='partial'))
+    def say_partial_dn(self):
+        set_response(line_response("diss-norwich-partial"))
+
+    @Rule(LineContingency(station_one='diss', station_two='norwich', type='full'))
+    def say_full_dn(self):
+        set_response(line_response("diss-norwich-full"))
 
 def engine_response(user_input):
     engine = TrainBot()
     engine.reset()
-    # word =
-    # up = ''
-    if 'contingency' in user_input:
+
+    if 'line_contingency' in user_input:
         up = user_input.split('-')
-        engine.declare(Contingency(station_one=up[1], station_two=up[2], type=up[3]))
+        engine.declare(LineContingency(station_one=up[1], station_two=up[2], type=up[3]))
+        engine.run()
+    elif 'weather_contingency' in user_input:
+        wth = user_input.split('-')
+        engine.declare(WeatherContingency(input=wth[1]))
         engine.run()
     else:
         if user_input is not None:
 
             engine.declare(Greeting(input=user_input),Book(input=user_input), Task3(input=user_input))
             # engine.declare(Book(user_input))   # adds a new fact to the list of factlist
-            # engine.declare(Contingency(station_one=up[1], station_two=up[2], type=up[3]))
+            # engine.declare(LineContingency(station_one=up[1], station_two=up[2], type=up[3]))
             engine.run()
 
         return True
@@ -218,36 +241,41 @@ def set_response(current_response):
     response.set_engine_response(current_response)
 
 
-def find_response(user_input):
-    # user_input_lower = user_input.lower()
-    # for intent, data in sentences.items():
-    #     if any(pattern in user_input_lower for pattern in data["patterns"]):
-    #         return intent, 1.0
+def line_response(user_input):
+
     triggers = user_input.split('-')
-    print(sentences[triggers[0]+'-'+triggers[1]][triggers[2]])
-    plan = sentences[triggers[0]+'-'+triggers[1]][triggers[2]]
-    response = ''
+    # print(contingencies[triggers[0]+'-'+triggers[1]][triggers[2]])
+    plan = line_block_contingencies[triggers[0]+'-'+triggers[1]][triggers[2]]
+
+    if plan is None or plan == '':
+        return "There is no contingency plan for this route."
+
+    contingency_response = ''
     for key, value in plan.items():
-        response += '<b>'+key+'</b>' + ' : ' + value + '<br>'
+        if type(value) is list:
+            contingency_response += '<b>'+key+':</b><br>'+ setup_html_response(value)
+        else:
+            contingency_response += '<b>' + key + ':</b><br>' + value + '<br>'
 
+    return contingency_response
+  
+def weather_response(user_input):
+    print('here here',user_input)
+    # triggers = user_input.split('-')
+    plan = weather_contingencies[user_input]
+    print(plan)
+    if plan is None or plan == '':
+        return "There is no contingency plan for this weather."
 
-    return response
-    # for word in user_input.split(' '):
-    #     for type_of_intention in sentences[user_input]:
-    #         if word.lower() in sentences[type_of_intention]["patterns"]:
-    #             # print(sentences[type_of_intention]['responses'])
-    #             # for key, values in sentences[type_of_intention]:
-    #             responses = sentences[type_of_intention]["responses"]
-    #             print(type(responses))
-    #             for key, value in responses.items():
-    #                 print("LOOOOOKKKKK ", key, value)
-    #                 # if values == "responses":
-                    #
-                    #     for value in values:
-                    #         print(value)
+    contingency_response = ''
+    contingency_response += '<b>' + user_input + ':</b><br>' + setup_html_response(plan)
 
-                # Do not change these lines
-                # if type_of_intention == 'greeting' and final_chatbot:
-                #     print("BOT: We can talk about the time, date, and train tickets.\n(Hint: What time is it?)")
-                # return type_of_intention
-    # return None
+    return contingency_response
+
+def setup_html_response(text_input):
+    html_response = '<ul class="list-disc pl-5">'
+    for text in text_input:
+        html_response += '<li>' + text + '</li>'
+    html_response += '</ul>'
+    return html_response
+

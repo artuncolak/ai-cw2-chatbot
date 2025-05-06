@@ -139,7 +139,7 @@ class NLP:
         location_pattern_1 = [{"ENT_TYPE": "GPE"},{"LOWER": "between"}, {"ENT_TYPE": "GPE"}]
 
         blockage_pattern = [{"LEMMA": {"IN": ["partial","full"]}}]
-
+        weather_pattern = [{"LEMMA": {"IN": ["high winds","wind","flood","snow","frost","autumn","high temperature"]}}]
 
 
         matcher.add("greet", [greet_pattern])
@@ -157,6 +157,7 @@ class NLP:
         matcher.add("location", [location_pattern, location_pattern_1])
         matcher.add("blockage", [blockage_pattern])
         matcher.add("blockage_time", [time_pattern, time_pattern_1])
+        matcher.add("weather", [weather_pattern])
 
         #
         # lemmatized_input = ''
@@ -234,7 +235,14 @@ class NLP:
 
             if string_id == "blockage":
                 self.__task3.set_type_of_blockage(span.text)
-                engine_response('contingency-'+self.__task3.get_location_one()+'-'+self.__task3.get_location_two()+'-'+self.__task3.get_type_of_blockage())
+                engine_response('line_contingency-'+self.__task3.get_location_one()+'-'+self.__task3.get_location_two()+'-'+self.__task3.get_type_of_blockage())
+
+            if string_id == "weather":
+                print(span.text)
+                if span.text[-1:] == 's':
+                    engine_response('weather_contingency-'+span.text[0:-1])
+                else:
+                    engine_response('weather_contingency-'+span.text)
 
         if len(matches) == 0:
             engine_response(user_input.lower())

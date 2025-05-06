@@ -1,0 +1,36 @@
+{
+	"autumn": [
+		"During the Autumn period a forecast of adhesion conditions is also supplied and utilises an additional level of alert – Black – to indicate the likelihood of severe railhead contamination. This is to be used as additional information to allocate an alert status.",
+		"Traincrew depots will be made aware of current weather conditions and whether RHTT circuits have been completed successfully or not, based on information received from the Control Autumn Manager. This information will be posted to the depot Traincrew Information Monitors.",
+		"During the leaf fall season all Class 90 locomotives should, where possible, have four traction motors operational on the first 3 loco hauled services from Norwich. Where possible, this should also apply to the locomotive stabled at Ipswich used to form the first Up service to London Liverpool Street. Class 90 locomotives should not be allowed into service with less than three operational traction motors. GA may decide to retime Norwich services to provide additional time in the morning peak to allow for slipping caused by low rail adhesion."
+	],
+	"frost": [
+		"Risks with frost include arcing on the OHLE and frozen doors. In the case of the latter, depots and stabling points need to treat train doors before service. In the case of the former, the arcing is to be expected and should not be considered a concern.",
+		"Class 379 units are fitted with a Line Interference Monitor which identifies electrical interference caused by the operation of the train. In frost conditions arcing from the pantograph can cause the LIM to continually trip the VCB on the train. Class 379 units are fitted with an Ice Mode which raises the tolerance of the LIM and prevents tripping of the VCB.",
+		"Ice Mode is initiated by the Driver and needs to be initiated each time the cab is activated. When the forecast air temperature is below 2 degrees the Duty Information Manager will post a notice on the depot Traincrew Information Monitors for those depots that operate Class 379 units, reminding drivers to activate ice mode between the times that the temperature is forecast to be below 2 degrees.",
+		"In the event of a frost risk being forecast, a Tyrell message will be emailed out along with a message placed on Whiteboard highlighting the affected areas. Stations in the affected areas will then be expected to enact the ‘Winterisation Plan’ as drawn up by the Customer Service team. The ‘Winterisation Plan’ is re-issued on an annual basis in November, having been reviewed in September. The thresholds for the ‘Winterisation Plan’ being enacted can be found within this plan."
+	],
+	"snow": [
+		"Snow can have a huge impact on GA’s ability to deliver a train service. It has far-reaching effects ranging from damage to rolling stock and the infrastructure through to safety risks for our staff and customers on platforms, car parks and stairs.",
+		"If snow is forecast a company conference will be called to discuss the required mitigations and actions. Any agreed actions will be disseminated to the business via the company messaging service. Consideration will be given to enacting the company’s Emergency Plan should the snow event be prolonged (more than 48 hours), as well as instigating Gold Command within the AICC.",
+		"Network Rail’s Key Route Strategy prioritises routes and sections of lines throughout the Anglia Route where effort shall be directed during periods of heavy snow. Details shall be contained in the Network Rail produced Winter Working Arrangements along with information in relation to any additional resources that may be required. The GA Weather Related Service Management plans can be found on the Control page of the Intranet.",
+		"Class 317 and Class 321 traction motor damage mitigation : Where snow is falling or lying snow is being disturbed by the passage of trains, the company will impose a speed restriction of 60mph on these units. This restriction will be applied to protect the motors on these units from water ingress which can cause the motors to flashover and fail. The required speed restriction is dictated by representatives from the Fleet department and will be communicated to all traincrew via a notice in depot signing on points.",
+		"In the event of a snow risk being forecast, a Tyrell message will be emailed out along with a message placed on Whiteboard highlighting the affected areas. Stations in the affected areas will then be expected to enact the ‘Winterisation Plan’ as drawn up by the Customer Service team. The ‘Winterisation Plan’ is re-issued on an annual basis in November, having been reviewed in September. The thresholds for the ‘Winterisation Plan’ being enacted can be found within this plan."
+	],
+	"wind": [
+		"High wind speeds can cause damage to the overhead line equipment and bring the risk of collision with fallen trees and airborne detritus. To mitigate these risks Network Rail will impose speed restrictions if the forecast wind speeds exceed set limits.",
+		"Any required speed restrictions will be advised via an EWAT conference and broadcast to drivers via the normal company channels.",
+		"Plans will be made in advance for possible requirements for Blanket Speed Restrictions along the guidelines used by Network Rail."
+	],
+	"temp":
+		[
+			"High temperatures can cause sagging of the overhead line equipment which brings a risk of dewirement. Certain locations on the GE route require a reduction in speed if the forecast temperature exceeds set limits.",
+			"Any required speed restrictions will be advised via a EWAT conference and broadcast to drivers either by notices in traincrew signing on points or via a GSM-R general broadcast.",
+			"If high temperatures are forecast, the customer services team will arrange for stocks of bottled water to be held for customers at principal staffed stations and in Loco Hauled Coaching Stock DVT vehicles. These arrangements will be confirmed during the company daily conference or special weather conference.",
+			"If, during high temperatures, rolling stock with air conditioning (Class 170, Class 321 Renatus, Class 360, Class 379, Mk.II coaching stock hired from DRS and Mk.III coaching stock) becomes disabled and the air conditioning on board ceases to function, the rescue and detrainment of passengers must be a priority. SM 7.8 and SM20.9 cover Train Evacuation and Stranded Train Arrangements."
+		],
+	"flood": [
+		"In the event of any flooding reports, cautioning will take place as required by the Rule Book. Additional restrictions may be required by the relevant Fleet Manager to prevent damage to roller bearings."
+	]
+
+}
