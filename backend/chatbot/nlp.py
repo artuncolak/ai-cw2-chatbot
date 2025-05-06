@@ -12,6 +12,7 @@ from spacy.tokens import Doc
 from spacy.matcher import Matcher
 
 from .task1 import Task1
+from .task3 import Task3
 from engine import engine_response, ExpertaResponse
 
 
@@ -36,6 +37,7 @@ class NLP:
             spacy.cli.download(MODEL_NAME)
             self.__spacy = spacy.load(MODEL_NAME)
         self.__task1 = Task1()
+        self.__task3 = Task3()
         self.__intentions = self._load_intentions(INTENTIONS_FILE)
         self.__sentences = self._load_sentences(SENTENCES_FILE)
         self.__experta = ExpertaResponse()
@@ -132,6 +134,14 @@ class NLP:
 
         delay_pattern = [{"LEMMA": {"IN": ["delay", "late"]}}]
 
+        incident_pattern = [{"LEMMA": {"IN": ["incident", "issue", "problem"]}}]
+        location_pattern = [{"LEMMA": {"IN": ["location","between","occur","happen"]}}]
+        location_pattern_1 = [{"ENT_TYPE": "GPE"},{"LOWER": "between"}, {"ENT_TYPE": "GPE"}]
+
+        blockage_pattern = [{"LEMMA": {"IN": ["partial","full"]}}]
+        weather_pattern = [{"LEMMA": {"IN": ["high winds","wind","flood","snow","frost","autumn","high temperature"]}}]
+
+
         matcher.add("greet", [greet_pattern])
         matcher.add("thank", [thank_pattern])
         matcher.add("bye", [bye_pattern])
@@ -143,6 +153,12 @@ class NLP:
         matcher.add("date", [date_pattern])
         matcher.add("time", [time_pattern, time_pattern_1])
         matcher.add("delay", [delay_pattern])
+        matcher.add("incident", [incident_pattern])
+        matcher.add("location", [location_pattern, location_pattern_1])
+        matcher.add("blockage", [blockage_pattern])
+        matcher.add("blockage_time", [time_pattern, time_pattern_1])
+        matcher.add("weather", [weather_pattern])
+
         #
         # lemmatized_input = ''
         #
@@ -164,6 +180,7 @@ class NLP:
                 or string_id == "greet"
                 or string_id == "delay"
                 or string_id == "travel"
+                or string_id == "incident"
             ):
                 engine_response(string_id)
 
@@ -202,17 +219,48 @@ class NLP:
                         self.__task1.set_destination_station(token.text)
                 engine_response("destination")
 
+            if string_id == "location":
+                location = []
+                for token in user_doc:
+                    print(token.text, token.tag_)
+                    if token.tag_ == "NNP" or token.tag_ == "NN":
+                        location.append(token.text)
+
+                    if token.tag_ == "TIME":
+                        self.__task3.set_time_of_incident(token.text)
+
+                self.__task3.set_location_one(location[0])
+                self.__task3.set_location_two(location[1])
+                engine_response("location")
+
+            if string_id == "blockage":
+                self.__task3.set_type_of_blockage(span.text)
+                engine_response('line_contingency-'+self.__task3.get_location_one()+'-'+self.__task3.get_location_two()+'-'+self.__task3.get_type_of_blockage())
+
+            if string_id == "weather":
+                print(span.text)
+                if span.text[-1:] == 's':
+                    engine_response('weather_contingency-'+span.text[0:-1])
+                else:
+                    engine_response('weather_contingency-'+span.text)
+
         if len(matches) == 0:
             engine_response(user_input.lower())
 
+        print("TASK 1 INFO ")
         print(self.__task1.get_time_of_travel())
         print(self.__task1.get_date_of_travel())
         print(self.__task1.get_source_station())
         print(self.__task1.get_destination_station())
 
+        print("TASK 3 INFO")
+        print(self.__task3.get_type_of_blockage())
+        print(self.__task3.get_time_of_incident())
+        print(self.__task3.get_location_one())
+        print(self.__task3.get_location_two())
 
 
-
+        # engine_response('contingency-colchester-manningtree-partial')
         # user_input_lower = user_input.lower()
         # for intent, data in self.__intentions.items():
         #     if any(pattern in user_input_lower for pattern in data["patterns"]):
