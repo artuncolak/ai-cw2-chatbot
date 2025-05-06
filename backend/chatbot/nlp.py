@@ -5,7 +5,7 @@ NLP
 import json
 import random
 from typing import Dict, List, Tuple, Optional
-
+from datetime import datetime
 import spacy
 from spacy.tokens import Doc
 
@@ -14,7 +14,8 @@ from spacy.matcher import Matcher
 from .task1 import Task1
 from .task3 import Task3
 from engine import engine_response, ExpertaResponse
-
+from .my_train_scrapper import MyTrainScrapper
+from station import StationService
 
 MODEL_NAME = "en_core_web_md"
 INTENTIONS_FILE = "chatbot/data/intentions.json"
@@ -41,7 +42,8 @@ class NLP:
         self.__intentions = self._load_intentions(INTENTIONS_FILE)
         self.__sentences = self._load_sentences(SENTENCES_FILE)
         self.__experta = ExpertaResponse()
-
+        self.__scrapper = MyTrainScrapper()
+        self.__station_service = StationService()
     def _load_intentions(self, file_path: str) -> Dict:
         """Load and parse the intentions JSON file.
 
@@ -258,6 +260,28 @@ class NLP:
         print(self.__task3.get_time_of_incident())
         print(self.__task3.get_location_one())
         print(self.__task3.get_location_two())
+
+        if self.__task1.check_all_details_gathered():
+            source_stations = self.__station_service.search_by_name(self.__task1.get_source_station())
+            st1 = random.choice(source_stations)
+            for station in source_stations:
+                print(f"{station.name} ({station.code})")
+
+            dest_stations = self.__station_service.search_by_name(self.__task1.get_destination_station())
+            st2 = random.choice(dest_stations)
+            for station in dest_stations:
+                print(f"{station.name} ({station.code})")
+
+            date_string = self.__task1.get_date_of_travel().capitalize()+', 2025 '+self.__task1.get_time_of_travel().upper()
+            print(date_string)
+            date_format = "%B %d, %Y %I:%M %p"
+            datetime_object = datetime.strptime(date_string.strip(), date_format)
+            # print(datetime_object)
+            formatted_date_string = datetime_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+            # print(formatted_date_string)
+            url = self.__scrapper.run_scrapper(st1.my_train_code,st2.my_train_code,formatted_date_string)
+            print(url)
+            return url
 
 
         # engine_response('contingency-colchester-manningtree-partial')

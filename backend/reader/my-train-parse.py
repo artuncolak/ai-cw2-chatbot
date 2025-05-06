@@ -164,7 +164,7 @@ ticket_planner = {
     "destination": "dcb95f85-b7e6-4615-8531-3e206b319e0b",
     "adults": 1,
     "journeyType": ["oneWay"],
-    "outboundDate": "2025-04-28T04:00:00Z",
+    "outboundDate": "2025-05-16T06:00:00Z",
     "outboundTimeType": ["DepartingAt"],
     "viaAvoid":"Via"
 
