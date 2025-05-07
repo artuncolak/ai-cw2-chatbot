@@ -47,5 +47,10 @@ class Task1:
 
         return None
 
-        # perform the scrapping
+    def remove_all_info(self):
+        self.source_station = None
+        self.destination_station = None
+        self.time_of_travel = None
+        self.date_of_travel = None
+        
 

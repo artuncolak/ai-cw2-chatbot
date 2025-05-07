@@ -119,12 +119,12 @@ class NLP:
         ]
         station_pattern_2 = [{"tag": "NNP"}, {"tag": "NNP"}, {"LOWER": "station"}]
 
-        source_pattern = [{"LOWER": "from"}, {"ENT_TYPE": "GPE"}]
+        source_pattern = [{"LOWER": "from"}]
         source_pattern_1 = [
             {"LEMMA": {"IN": ["source", "start", "begin", "origin", "board"]}}
         ]
 
-        destination_pattern_2 = [{"LOWER": "to"}, {"ENT_TYPE": "GPE"}]
+        destination_pattern_2 = [{"LOWER": "to"}]
         # destination_pattern = [{"LOWER": "destination"}]
         destination_pattern = [
             {"LEMMA": {"IN": ["destination", "end", "final", "stop", "deboard"]}}
@@ -209,16 +209,28 @@ class NLP:
                     self.check_task1_missing_info()
 
             if string_id == "source":
+                source_name = ''
                 for token in user_doc:
-                    if token.ent_type_ == "GPE":
-                        self.__task1.set_source_station(token.text)
+                    if token.lemma_ == 'to':
                         break
+                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS","NNS"]:
+
+                        source_name += token.text.capitalize() + ' '
+                        # break
+
+                self.__task1.set_source_station(source_name)
                 engine_response("source")
 
             if string_id == "destination":
+                destination_name = ''
                 for token in user_doc:
-                    if token.ent_type_ == "GPE":
-                        self.__task1.set_destination_station(token.text)
+                    if token.lemma_ == 'to':
+                        destination_name = ''
+                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS","NNS"]:
+
+                        destination_name += token.text.capitalize() + ' '
+
+                self.__task1.set_destination_station(destination_name)
                 engine_response("destination")
 
             if string_id == "location":
@@ -262,15 +274,15 @@ class NLP:
         print(self.__task3.get_location_two())
 
         if self.__task1.check_all_details_gathered():
-            source_stations = self.__station_service.search_by_name(self.__task1.get_source_station())
-            st1 = random.choice(source_stations)
-            for station in source_stations:
-                print(f"{station.name} ({station.code})")
-
-            dest_stations = self.__station_service.search_by_name(self.__task1.get_destination_station())
-            st2 = random.choice(dest_stations)
-            for station in dest_stations:
-                print(f"{station.name} ({station.code})")
+            
+            
+            source_station = self.__station_service.search_by_name(self.__task1.get_source_station().strip())
+            print(source_station)
+          
+        
+            dest_station = self.__station_service.search_by_name(self.__task1.get_destination_station().strip())
+            print(dest_station)
+           
 
             date_string = self.__task1.get_date_of_travel().capitalize()+', 2025 '+self.__task1.get_time_of_travel().upper()
             print(date_string)
@@ -279,8 +291,18 @@ class NLP:
             # print(datetime_object)
             formatted_date_string = datetime_object.strftime("%Y-%m-%dT%H:%M:%SZ")
             # print(formatted_date_string)
-            url = self.__scrapper.run_scrapper(st1.my_train_code,st2.my_train_code,formatted_date_string)
-            print(url)
+            url = ''
+            if len(source_station) == 0 or len(dest_station) == 0:
+                
+                engine_response("sorry_no_station")
+
+            else:
+                url = self.__scrapper.run_scrapper(source_station[0].my_train_code,dest_station[0].my_train_code,formatted_date_string)
+                # print(url)
+            self.__task1.remove_all_info()
+            if url == '':
+                engine_response("sorry_task1")
+                return self.__experta.get_engine_response()
             return url
 
 
