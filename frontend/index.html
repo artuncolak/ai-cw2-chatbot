@@ -136,7 +136,9 @@
 
           messageList.appendChild(msg);
           ws.send(input);
-
+          if (input.includes('AM') || input.includes('PM')) {
+            hideLoader(false)
+          }
           chatInput.value = "";
           
           
@@ -192,7 +194,15 @@
             };
           } else {
             console.log(message.data);
-            msg.innerHTML = message.data;
+            if(message.data.includes('https')) {
+              // const anchor =
+              hideLoader()
+              msg.innerHTML = `<span>Cheapest ticket I found: <a href=${message.data} target="_blank" class="text-amber-700">YOUR TICKET</a></span>`
+            } else {
+              msg.innerHTML = message.data;
+
+            }
+
           }
           messageList.appendChild(msg);
           checkWSClose(msg.innerHTML)

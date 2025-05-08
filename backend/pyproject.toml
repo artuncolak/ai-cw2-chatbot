@@ -11,5 +11,6 @@ dependencies = [
     "pydantic-settings>=2.8.1",
     "spacy>=3.8.4",
     "sqlmodel>=0.0.24",
-    "experta>=1.9.4"
+    "experta>=1.9.4",
+    "selenium>=4.30.0"
 ]

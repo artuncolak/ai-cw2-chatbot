@@ -5,7 +5,7 @@ NLP
 import json
 import random
 from typing import Dict, List, Tuple, Optional
-
+from datetime import datetime
 import spacy
 from spacy.tokens import Doc
 
@@ -14,7 +14,8 @@ from spacy.matcher import Matcher
 from .task1 import Task1
 from .task3 import Task3
 from engine import engine_response, ExpertaResponse
-
+from .my_train_scrapper import MyTrainScrapper
+from station import StationService
 
 MODEL_NAME = "en_core_web_md"
 INTENTIONS_FILE = "chatbot/data/intentions.json"
@@ -41,7 +42,8 @@ class NLP:
         self.__intentions = self._load_intentions(INTENTIONS_FILE)
         self.__sentences = self._load_sentences(SENTENCES_FILE)
         self.__experta = ExpertaResponse()
-
+        self.__scrapper = MyTrainScrapper()
+        self.__station_service = StationService()
     def _load_intentions(self, file_path: str) -> Dict:
         """Load and parse the intentions JSON file.
 
@@ -117,12 +119,12 @@ class NLP:
         ]
         station_pattern_2 = [{"tag": "NNP"}, {"tag": "NNP"}, {"LOWER": "station"}]
 
-        source_pattern = [{"LOWER": "from"}, {"ENT_TYPE": "GPE"}]
+        source_pattern = [{"LOWER": "from"}]
         source_pattern_1 = [
             {"LEMMA": {"IN": ["source", "start", "begin", "origin", "board"]}}
         ]
 
-        destination_pattern_2 = [{"LOWER": "to"}, {"ENT_TYPE": "GPE"}]
+        destination_pattern_2 = [{"LOWER": "to"}]
         # destination_pattern = [{"LOWER": "destination"}]
         destination_pattern = [
             {"LEMMA": {"IN": ["destination", "end", "final", "stop", "deboard"]}}
@@ -207,16 +209,28 @@ class NLP:
                     self.check_task1_missing_info()
 
             if string_id == "source":
+                source_name = ''
                 for token in user_doc:
-                    if token.ent_type_ == "GPE":
-                        self.__task1.set_source_station(token.text)
+                    if token.lemma_ == 'to':
                         break
+                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS","NNS"]:
+
+                        source_name += token.text.capitalize() + ' '
+                        # break
+
+                self.__task1.set_source_station(source_name)
                 engine_response("source")
 
             if string_id == "destination":
+                destination_name = ''
                 for token in user_doc:
-                    if token.ent_type_ == "GPE":
-                        self.__task1.set_destination_station(token.text)
+                    if token.lemma_ == 'to':
+                        destination_name = ''
+                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS","NNS"]:
+
+                        destination_name += token.text.capitalize() + ' '
+
+                self.__task1.set_destination_station(destination_name)
                 engine_response("destination")
 
             if string_id == "location":
@@ -258,6 +272,38 @@ class NLP:
         print(self.__task3.get_time_of_incident())
         print(self.__task3.get_location_one())
         print(self.__task3.get_location_two())
+
+        if self.__task1.check_all_details_gathered():
+            
+            
+            source_station = self.__station_service.search_by_name(self.__task1.get_source_station().strip())
+            print(source_station)
+          
+        
+            dest_station = self.__station_service.search_by_name(self.__task1.get_destination_station().strip())
+            print(dest_station)
+           
+
+            date_string = self.__task1.get_date_of_travel().capitalize()+', 2025 '+self.__task1.get_time_of_travel().upper()
+            print(date_string)
+            date_format = "%B %d, %Y %I:%M %p"
+            datetime_object = datetime.strptime(date_string.strip(), date_format)
+            # print(datetime_object)
+            formatted_date_string = datetime_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+            # print(formatted_date_string)
+            url = ''
+            if len(source_station) == 0 or len(dest_station) == 0:
+                
+                engine_response("sorry_no_station")
+
+            else:
+                url = self.__scrapper.run_scrapper(source_station[0].my_train_code,dest_station[0].my_train_code,formatted_date_string)
+                # print(url)
+            self.__task1.remove_all_info()
+            if url == '':
+                engine_response("sorry_task1")
+                return self.__experta.get_engine_response()
+            return url
 
 
         # engine_response('contingency-colchester-manningtree-partial')

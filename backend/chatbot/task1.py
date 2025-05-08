@@ -30,7 +30,7 @@ class Task1:
         self.date_of_travel = date_of_travel
 
     def check_all_details_gathered(self):
-        if self.destination_station == '' or self.source_station == '' or self.time_of_travel == '' or self.date_of_travel == '':
+        if self.destination_station is None or self.source_station is None or self.time_of_travel is None or self.date_of_travel is None:
             return False
         else:
             return True
@@ -47,5 +47,10 @@ class Task1:
 
         return None
 
-        # perform the scrapping
+    def remove_all_info(self):
+        self.source_station = None
+        self.destination_station = None
+        self.time_of_travel = None
+        self.date_of_travel = None
+        
 

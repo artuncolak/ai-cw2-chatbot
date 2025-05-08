@@ -136,6 +136,13 @@ class TrainBot(KnowledgeEngine):
     def say_sorry(self):
         set_response("Sorry, I have missed some of the important info.")
 
+    @Rule(Book(input='sorry_task1'))
+    def say_sorry_task1(self):
+        set_response("Sorry, Something went wrong. Please try again.")
+
+    @Rule(Book(input='sorry_no_station'))
+    def say_sorry_no_station(self):
+        set_response("Sorry, I could not find the relevant station. Please check the names and try again.")
 
     @Rule(Task3(input='incident'))
     def say_incident(self):
