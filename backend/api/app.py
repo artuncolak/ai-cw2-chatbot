@@ -32,8 +32,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    app.state.chatbot = ChatBot()
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,

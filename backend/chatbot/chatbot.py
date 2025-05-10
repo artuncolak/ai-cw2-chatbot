@@ -3,6 +3,7 @@ ChatBot
 """
 
 from datetime import datetime
+from uuid import UUID
 
 from .nlp import NLP
 
@@ -12,9 +13,9 @@ CONFIDENCE_THRESHOLD = 0.5
 class ChatBot:
     """ChatBot Class"""
 
-    def __init__(self):
+    def __init__(self, conversation_id: UUID):
         """Initialize the chatbot with required files and NLP processor."""
-        self.__nlp = NLP()
+        self.__nlp = NLP(conversation_id=conversation_id)
 
     def _get_current_time(self) -> str:
         """Get the current time in a readable format.

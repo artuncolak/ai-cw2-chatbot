@@ -6,6 +6,7 @@ import json
 import random
 from typing import Dict, List, Tuple, Optional
 from datetime import datetime
+from uuid import UUID
 import spacy
 from spacy.tokens import Doc
 
@@ -29,7 +30,7 @@ class NLP:
     language model. It handles model loading and provides methods for text analysis.
     """
 
-    def __init__(self):
+    def __init__(self, conversation_id: UUID):
         """Initialize the NLP processor with spaCy's English language model."""
         try:
             self.__spacy = spacy.load(MODEL_NAME)
@@ -44,6 +45,8 @@ class NLP:
         self.__experta = ExpertaResponse()
         self.__scrapper = MyTrainScrapper()
         self.__station_service = StationService()
+        self.conversation_id = conversation_id
+
     def _load_intentions(self, file_path: str) -> Dict:
         """Load and parse the intentions JSON file.
 
@@ -131,18 +134,37 @@ class NLP:
         ]
 
         date_pattern = [{"ENT_TYPE": "DATE"}, {"ENT_TYPE": "DATE"}]
-        time_pattern = [{"ENT_TYPE": "TIME"} ]
+        time_pattern = [{"ENT_TYPE": "TIME"}]
         time_pattern_1 = [{"ENT_TYPE": "TIME"}, {"ENT_TYPE": "TIME"}]
 
         delay_pattern = [{"LEMMA": {"IN": ["delay", "late"]}}]
 
         incident_pattern = [{"LEMMA": {"IN": ["incident", "issue", "problem"]}}]
-        location_pattern = [{"LEMMA": {"IN": ["location","between","occur","happen"]}}]
-        location_pattern_1 = [{"ENT_TYPE": "GPE"},{"LOWER": "between"}, {"ENT_TYPE": "GPE"}]
+        location_pattern = [
+            {"LEMMA": {"IN": ["location", "between", "occur", "happen"]}}
+        ]
+        location_pattern_1 = [
+            {"ENT_TYPE": "GPE"},
+            {"LOWER": "between"},
+            {"ENT_TYPE": "GPE"},
+        ]
 
-        blockage_pattern = [{"LEMMA": {"IN": ["partial","full"]}}]
-        weather_pattern = [{"LEMMA": {"IN": ["high winds","wind","flood","snow","frost","autumn","high temperature"]}}]
-
+        blockage_pattern = [{"LEMMA": {"IN": ["partial", "full"]}}]
+        weather_pattern = [
+            {
+                "LEMMA": {
+                    "IN": [
+                        "high winds",
+                        "wind",
+                        "flood",
+                        "snow",
+                        "frost",
+                        "autumn",
+                        "high temperature",
+                    ]
+                }
+            }
+        ]
 
         matcher.add("greet", [greet_pattern])
         matcher.add("thank", [thank_pattern])
@@ -192,14 +214,14 @@ class NLP:
                 if self.__task1.get_time_of_travel() is None:
                     engine_response("time")
                 else:
-                     self.check_task1_missing_info()
+                    self.check_task1_missing_info()
 
             if string_id == "time":
-                time = ''
+                time = ""
                 for token in user_doc:
                     if token.ent_type_ == "TIME":
                         print(token.text)
-                        time += token.text + ' '
+                        time += token.text + " "
 
                 self.__task1.set_time_of_travel(time)
 
@@ -209,26 +231,26 @@ class NLP:
                     self.check_task1_missing_info()
 
             if string_id == "source":
-                source_name = ''
+                source_name = ""
                 for token in user_doc:
-                    if token.lemma_ == 'to':
+                    if token.lemma_ == "to":
                         break
-                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS","NNS"]:
+                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS", "NNS"]:
 
-                        source_name += token.text.capitalize() + ' '
+                        source_name += token.text.capitalize() + " "
                         # break
 
                 self.__task1.set_source_station(source_name)
                 engine_response("source")
 
             if string_id == "destination":
-                destination_name = ''
+                destination_name = ""
                 for token in user_doc:
-                    if token.lemma_ == 'to':
-                        destination_name = ''
-                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS","NNS"]:
+                    if token.lemma_ == "to":
+                        destination_name = ""
+                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS", "NNS"]:
 
-                        destination_name += token.text.capitalize() + ' '
+                        destination_name += token.text.capitalize() + " "
 
                 self.__task1.set_destination_station(destination_name)
                 engine_response("destination")
@@ -249,14 +271,21 @@ class NLP:
 
             if string_id == "blockage":
                 self.__task3.set_type_of_blockage(span.text)
-                engine_response('line_contingency-'+self.__task3.get_location_one()+'-'+self.__task3.get_location_two()+'-'+self.__task3.get_type_of_blockage())
+                engine_response(
+                    "line_contingency-"
+                    + self.__task3.get_location_one()
+                    + "-"
+                    + self.__task3.get_location_two()
+                    + "-"
+                    + self.__task3.get_type_of_blockage()
+                )
 
             if string_id == "weather":
                 print(span.text)
-                if span.text[-1:] == 's':
-                    engine_response('weather_contingency-'+span.text[0:-1])
+                if span.text[-1:] == "s":
+                    engine_response("weather_contingency-" + span.text[0:-1])
                 else:
-                    engine_response('weather_contingency-'+span.text)
+                    engine_response("weather_contingency-" + span.text)
 
         if len(matches) == 0:
             engine_response(user_input.lower())
@@ -274,37 +303,45 @@ class NLP:
         print(self.__task3.get_location_two())
 
         if self.__task1.check_all_details_gathered():
-            
-            
-            source_station = self.__station_service.search_by_name(self.__task1.get_source_station().strip())
-            print(source_station)
-          
-        
-            dest_station = self.__station_service.search_by_name(self.__task1.get_destination_station().strip())
-            print(dest_station)
-           
 
-            date_string = self.__task1.get_date_of_travel().capitalize()+', 2025 '+self.__task1.get_time_of_travel().upper()
+            source_station = self.__station_service.search_by_name(
+                self.__task1.get_source_station().strip()
+            )
+            print(source_station)
+
+            dest_station = self.__station_service.search_by_name(
+                self.__task1.get_destination_station().strip()
+            )
+            print(dest_station)
+
+            date_string = (
+                self.__task1.get_date_of_travel().capitalize()
+                + ", 2025 "
+                + self.__task1.get_time_of_travel().upper()
+            )
             print(date_string)
             date_format = "%B %d, %Y %I:%M %p"
             datetime_object = datetime.strptime(date_string.strip(), date_format)
             # print(datetime_object)
             formatted_date_string = datetime_object.strftime("%Y-%m-%dT%H:%M:%SZ")
             # print(formatted_date_string)
-            url = ''
+            url = ""
             if len(source_station) == 0 or len(dest_station) == 0:
-                
+
                 engine_response("sorry_no_station")
 
             else:
-                url = self.__scrapper.run_scrapper(source_station[0].my_train_code,dest_station[0].my_train_code,formatted_date_string)
+                url = self.__scrapper.run_scrapper(
+                    source_station[0].my_train_code,
+                    dest_station[0].my_train_code,
+                    formatted_date_string,
+                )
                 # print(url)
             self.__task1.remove_all_info()
-            if url == '':
+            if url == "":
                 engine_response("sorry_task1")
                 return self.__experta.get_engine_response()
             return url
-
 
         # engine_response('contingency-colchester-manningtree-partial')
         # user_input_lower = user_input.lower()

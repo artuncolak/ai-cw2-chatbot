@@ -7,6 +7,9 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from sqlmodel import Session, delete, select
 from websockets.exceptions import ConnectionClosedError
 
+from api.managers import websocket_manager
+from chatbot.chatbot import ChatBot
+
 from ..database import Message, Conversation, get_session
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
@@ -78,17 +81,21 @@ async def conversation_websocket(websocket: WebSocket, conversation_id: UUID):
         conversation_id (UUID): The ID of the conversation to connect to
     """
     print(f"Attempting to connect with conversation_id: {conversation_id}")
-    await websocket.accept()
+    await websocket_manager.connect(conversation_id, websocket)
 
     # Get existing conversation
     session = next(get_session())
     conversation = session.get(Conversation, conversation_id)
 
     if not conversation:
-        await websocket.close(code=4004, reason="Conversation not found")
+        await websocket_manager.disconnect(
+            conversation_id, websocket, code=4004, reason="Conversation not found"
+        )
         return
 
     try:
+        chatbot = ChatBot()
+
         while True:
             message = await websocket.receive_text()
 
@@ -99,7 +106,6 @@ async def conversation_websocket(websocket: WebSocket, conversation_id: UUID):
             session.add(user_message)
 
             # Get chatbot response
-            chatbot = websocket.app.state.chatbot
             response = chatbot.get_response(message)
 
             # Store bot response
