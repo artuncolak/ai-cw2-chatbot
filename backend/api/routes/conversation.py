@@ -94,7 +94,7 @@ async def conversation_websocket(websocket: WebSocket, conversation_id: UUID):
         return
 
     try:
-        chatbot = ChatBot()
+        chatbot = ChatBot(conversation_id=conversation_id)
 
         while True:
             message = await websocket.receive_text()
