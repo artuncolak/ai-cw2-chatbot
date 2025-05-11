@@ -4,6 +4,9 @@ import numpy as np
 from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 from collections import Counter
 
+from prediction.embedding.embedding_manager import EmbeddingManager
+from prediction.embedding.qdrant_manager import QdrantManager
+
 
 class PredictionService:
     """
@@ -13,9 +16,6 @@ class PredictionService:
     def __init__(self, qdrant_manager=None, embedding_manager=None):
         """
         Initialize the PredictionService with a QdrantManager instance.
-
-        Args:
-            qdrant_manager: QdrantManager instance for accessing the vector database
         """
         self.qdrant_manager = qdrant_manager
         self.embedding_manager = embedding_manager
@@ -288,15 +288,12 @@ class PredictionService:
         avg_delays_by_station = {}
         for station, total_delay in all_delays_by_station.items():
             count = station_count[station]
-            print(station, total_delay, count)
             if count > 0:
-                avg_delays_by_station[station] = (
-                    total_delay / count
-                ) 
+                avg_delays_by_station[station] = total_delay / count
             else:
                 avg_delays_by_station[station] = 0
 
-        print(avg_delays_by_station)
+        print("avg_delays_by_station", avg_delays_by_station)
 
         return avg_delays_by_station
 
@@ -330,7 +327,7 @@ class PredictionService:
             start_delay = delays_by_station.get(segment[0], 0)
             end_delay = delays_by_station.get(segment[-1], 0)
 
-            print(end_delay / start_delay)
+            print("delay change factor", end_delay / start_delay)
 
             # Use factor of 1 if no initial delay
             if start_delay == 0:
@@ -363,3 +360,28 @@ class PredictionService:
             total_time += segment_time
 
         return total_time
+
+
+def get_prediction_service() -> PredictionService:
+    """Get a prediction service"""
+    embedding_manager = EmbeddingManager()
+
+    embeddings = embedding_manager.generate_embeddings(
+        [
+            "data/service/2022_service_details.csv",
+            "data/service/2023_service_details.csv",
+            "data/service/2024_service_details.csv",
+        ]
+    )
+
+    qdrant_manager = QdrantManager(embedding_dim=embedding_manager.embedding_dim)
+
+    is_collection_exists = qdrant_manager.is_collection_exists()
+
+    if not is_collection_exists:
+        qdrant_manager.initialize_collection()
+        qdrant_manager.upload_embeddings(embeddings)
+
+    prediction_service = PredictionService(qdrant_manager, embedding_manager)
+
+    return prediction_service

@@ -118,9 +118,29 @@ Each station record contains the following fields:
 - `anglia_code`: Anglia code
 - `national_rail_code`: National Rail code
 
-
 # Running scraper
 
-   ```bash
-   python backend/scraper/scraper.py
-   ```
+```bash
+python backend/scraper/scraper.py
+```
+
+## Qdrant Installation
+
+To start the Qdrant vector database using Docker:
+
+```bash
+docker run -d --name qdrant \
+  -p 6333:6333 \
+  qdrant/qdrant
+```
+
+This command:
+
+- Makes Qdrant accessible on port 6333 (REST API)
+- Uses the official Qdrant Docker image
+
+You can access the Qdrant dashboard at:
+
+```
+http://localhost:6333/dashboard
+```

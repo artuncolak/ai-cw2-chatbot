@@ -25,43 +25,47 @@ class EmbeddingManager:
         }
         self.embedding_dim = 0  # Will be set after preprocessor is initialized
 
-    def create_search_vector(self, station: str, hour: int, day: int, delay: int) -> List[float]:
+    def create_search_vector(
+        self, station: str, hour: int, day: int, delay: int
+    ) -> List[float]:
         """
         Create a search vector for querying similar train journeys
-        
+
         Args:
             station: Station code (e.g., NRW, DIS)
             hour: Hour of day (0-23)
             day: Day of week (0-6, Monday=0)
             delay: Current delay in minutes
-            
+
         Returns:
             List of floats representing the embedding vector
         """
         if self.preprocessor is None:
-            raise ValueError("Preprocessor not initialized. Call generate_embeddings first.")
-            
+            raise ValueError(
+                "Preprocessor not initialized. Call generate_embeddings first."
+            )
+
         # Create a feature dictionary similar to what we use for training
         features = {
             "station": station,
             "delay_minutes": float(delay),
             "hour": hour,
             "day": day,
-            "has_departure": 1.0 if station != "NRW" else 0.0, 
-            "has_arrival": 1.0,  
+            "has_departure": 1.0 if station != "NRW" else 0.0,
+            "has_arrival": 1.0,
         }
-        
+
         # Convert to DataFrame (required by the preprocessor)
         df = pd.DataFrame([features])
-        
+
         try:
             # Apply the same preprocessing as during training
             vector = self.preprocessor.transform(df)
-            
+
             # Convert to dense array if sparse
             if hasattr(vector, "toarray"):
                 vector = vector.toarray()
-                
+
             # Return as flat list
             return vector[0].tolist()
         except Exception as e:
@@ -90,12 +94,10 @@ class EmbeddingManager:
                 df = pd.read_csv(csv_path)
                 file_rows = len(df)
                 total_rows += file_rows
-                print(f"Number of rows: {file_rows}")
 
                 # Convert DataFrame to a list of dictionaries
                 rows = df.to_dict("records")
                 all_rows.extend(rows)
-                print(f"Processed file: {csv_path}")
             except Exception as e:
                 print(f"CSV reading error ({csv_path}): {e}")
 
@@ -152,8 +154,6 @@ class EmbeddingManager:
         self.categorical_values["station"] = list(
             set([model.station for model in all_models if model.station])
         )
-        print(f"Station codes: {self.categorical_values['station']}")
-
         self.embedding_models = all_models
 
         return self.create_vector_embeddings()
@@ -257,10 +257,7 @@ class EmbeddingManager:
         if self.preprocessor is None:
             self._initialize_preprocessor(all_features)
 
-        # Convert features to DataFrame
         features_df = pd.DataFrame(all_features)
-
-        # Generate embeddings using preprocessor
         embeddings = self.preprocessor.transform(features_df)
 
         # Convert to dense numpy arrays if sparse
@@ -270,8 +267,6 @@ class EmbeddingManager:
         # Store embeddings with metadata
         vector_embeddings = []
         for i, model in enumerate(self.embedding_models):
-            # Create numeric ID - Qdrant requires integer or UUID
-            # Here we use a simple incrementing integer
             point_id = i
 
             # Extract embedding vector

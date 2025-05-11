@@ -1,10 +1,8 @@
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 from qdrant_client import QdrantClient
-from qdrant_client.http import models
 from qdrant_client.http.models import PointStruct, Distance, VectorParams
-from .embedding_model import EmbeddingModel
-
+from config.settings import settings
 
 class QdrantManager:
     """
@@ -15,8 +13,8 @@ class QdrantManager:
     def __init__(
         self,
         embedding_dim: int,
-        collection_name: str = "train_delays",
-        host: str = "qdrant.orb.local",
+        collection_name: str = settings.QDRANT_COLLECTION_NAME,
+        host: str = settings.QDRANT_HOST,
         port: int = 6333,
     ):
         """
@@ -72,7 +70,7 @@ class QdrantManager:
     def upload_embeddings(
         self,
         embeddings: list[Tuple[str, np.ndarray, Dict[str, Any]]],
-        batch_size: int = 100,
+        batch_size: int = 10000,
     ) -> bool:
         """
         Upload embeddings to Qdrant
@@ -113,9 +111,9 @@ class QdrantManager:
             print(f"Error uploading embeddings: {e}")
             return False
 
-    def get_collection_info(self) -> Dict:
+    def is_collection_exists(self) -> bool:
         """
-        Get information about the collection
+        Check if the collection exists
 
         Returns:
             Dictionary with collection information
@@ -124,17 +122,13 @@ class QdrantManager:
             collections = self.client.get_collections().collections
             for collection in collections:
                 if collection.name == self.collection_name:
-                    return {
-                        "name": collection.name,
-                        "vectors_count": collection.vectors_count,
-                        "status": str(collection.status),
-                    }
+                    return True
 
-            return {"error": f"Collection '{self.collection_name}' not found"}
+            return False
 
         except Exception as e:
             print(f"Error getting collection info: {e}")
-            return {"error": str(e)}
+            return False
 
     def delete_collection(self) -> bool:
         """

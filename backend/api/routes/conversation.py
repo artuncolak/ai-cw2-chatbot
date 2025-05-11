@@ -9,6 +9,8 @@ from websockets.exceptions import ConnectionClosedError
 
 from api.managers import websocket_manager
 from chatbot.chatbot import ChatBot
+from prediction.prediction_service import PredictionService
+
 
 from ..database import Message, Conversation, get_session
 
@@ -70,7 +72,11 @@ def delete_conversation(conversation_id: UUID, session: Session = Depends(get_se
 
 
 @router.websocket("/{conversation_id}")
-async def conversation_websocket(websocket: WebSocket, conversation_id: UUID):
+async def conversation_websocket(
+    websocket: WebSocket,
+    conversation_id: UUID,
+    session: Session = Depends(get_session),
+):
     """Handle WebSocket connections for chat functionality.
 
     The endpoint accepts WebSocket connections and maintains a persistent connection
@@ -83,8 +89,6 @@ async def conversation_websocket(websocket: WebSocket, conversation_id: UUID):
     print(f"Attempting to connect with conversation_id: {conversation_id}")
     await websocket_manager.connect(conversation_id, websocket)
 
-    # Get existing conversation
-    session = next(get_session())
     conversation = session.get(Conversation, conversation_id)
 
     if not conversation:
@@ -114,6 +118,14 @@ async def conversation_websocket(websocket: WebSocket, conversation_id: UUID):
             )
             session.add(bot_message)
             session.commit()
+
+            # ---------- EXAMPLE PREDICTION SERVICE USAGE ----------
+            prediction_service: PredictionService = websocket.app.state.prediction_service
+            prediction = prediction_service.predict_arrival_time(
+                current_station="IPS", destination_station="LST", current_delay=9
+            )
+            print(prediction)
+            # ---------- EXAMPLE PREDICTION SERVICE USAGE ----------
 
             await websocket.send_text(str(response))
 

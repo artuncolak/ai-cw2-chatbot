@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     DATABASE_USER: str
     DATABASE_PASSWORD: str
     DATABASE_NAME: str
+    
+    # Qdrant Settings
+    QDRANT_HOST: str
+    QDRANT_COLLECTION_NAME: str
 
     # CORS Settings
     CORS_ORIGINS: List[str] = ["*"]

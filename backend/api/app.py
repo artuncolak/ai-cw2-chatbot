@@ -7,17 +7,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from chatbot.chatbot import ChatBot
 from .database import init_db
 from .routes import conversation_router
 from data import import_stations
-
+from prediction import get_prediction_service
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown."""
     init_db()
     import_stations()
+    prediction_service = get_prediction_service()
+    app.state.prediction_service = prediction_service
     yield
 
 
