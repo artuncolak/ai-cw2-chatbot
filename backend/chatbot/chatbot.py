@@ -33,7 +33,7 @@ class ChatBot:
         """
         return datetime.now().strftime("%A, %B %d, %Y")
 
-    def get_response(self, user_input: str) -> str:
+    async def get_response(self, user_input: str) -> str:
         """Generate a response based on user input.
 
         Args:
@@ -60,7 +60,7 @@ class ChatBot:
         #     case _:
         #         return self.__nlp.process_basic_intentions(intent)
 
-        return self.__nlp.find_best_match(user_input)
+        return await  self.__nlp.find_best_match(user_input)
 
     def get_engine_response(self, response: str) -> str:
         return response

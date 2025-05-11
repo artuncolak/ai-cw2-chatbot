@@ -17,6 +17,7 @@ from .task3 import Task3
 from engine import engine_response, ExpertaResponse
 from .my_train_scrapper import MyTrainScrapper
 from station import StationService
+from api.managers import websocket_manager
 
 MODEL_NAME = "en_core_web_md"
 INTENTIONS_FILE = "chatbot/data/intentions.json"
@@ -85,7 +86,7 @@ class NLP:
 
         return sentences
 
-    def find_best_match(self, user_input: str) -> str:
+    async def find_best_match(self, user_input: str) -> str:
         """Find the best matching intent for the user input.
 
         Args:
@@ -304,6 +305,8 @@ class NLP:
 
         if self.__task1.check_all_details_gathered():
 
+
+            await websocket_manager.send_message(self.conversation_id, "Hey hey this is Vanya")
             source_station = self.__station_service.search_by_name(
                 self.__task1.get_source_station().strip()
             )

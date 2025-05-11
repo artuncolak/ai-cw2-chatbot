@@ -110,7 +110,7 @@ async def conversation_websocket(
             session.add(user_message)
 
             # Get chatbot response
-            response = chatbot.get_response(message)
+            response = await chatbot.get_response(message)
 
             # Store bot response
             bot_message = Message(
