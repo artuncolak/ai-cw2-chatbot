@@ -12,5 +12,8 @@ dependencies = [
     "spacy>=3.8.4",
     "sqlmodel>=0.0.24",
     "experta>=1.9.4",
-    "selenium>=4.30.0"
+    "selenium>=4.30.0",
+    "pandas>=2.2.3",
+    "scikit-learn>=1.6.1",
+    "qdrant-client>=1.14.2",
 ]
