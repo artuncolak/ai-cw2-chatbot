@@ -14,7 +14,6 @@
    uv venv --python 3.11.11
    source .venv/bin/activate
    uv sync
-   pip install scrapy scrapy-playwright playwright
    playwright install chromium-headless-shell
    ```
 
@@ -117,12 +116,6 @@ Each station record contains the following fields:
 - `my_train_code`: MyTrain code
 - `anglia_code`: Anglia code
 - `national_rail_code`: National Rail code
-
-# Running scraper
-
-```bash
-python backend/scraper/scraper.py
-```
 
 ## Qdrant Installation
 
