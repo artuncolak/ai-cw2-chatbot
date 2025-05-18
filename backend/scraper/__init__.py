@@ -1,3 +1,6 @@
-from .scraper import nationalrail,lner
+"""
+Stations package for managing station data
+"""
+from .scraper import NationalRailScraper, MyTrainScrapper
 
-__all__ = ["nationalrail","lner"]
+__all__ = ["NationalRailScraper","MyTrainScrapper"]

@@ -15,7 +15,7 @@ from spacy.matcher import Matcher
 from .task1 import Task1
 from .task3 import Task3
 from engine import engine_response, ExpertaResponse
-from .my_train_scrapper import MyTrainScrapper
+# from .my_train_scrapper import MyTrainScrapper, NationalRailScraper
 from station import StationService
 from api.managers import websocket_manager
 
@@ -44,7 +44,8 @@ class NLP:
         self.__intentions = self._load_intentions(INTENTIONS_FILE)
         self.__sentences = self._load_sentences(SENTENCES_FILE)
         self.__experta = ExpertaResponse()
-        self.__scrapper = MyTrainScrapper()
+        # self.__mytrain_scraper = MyTrainScrapper()
+        # self.__national_scraper = NationalRailScraper()
         self.__station_service = StationService()
         self.conversation_id = conversation_id
 
@@ -306,70 +307,16 @@ class NLP:
         if self.__task1.check_all_details_gathered():
 
 
-            await websocket_manager.send_message(self.conversation_id, "Hey hey this is Vanya")
-            source_station = self.__station_service.search_by_name(
-                self.__task1.get_source_station().strip()
-            )
-            print(source_station)
+            await websocket_manager.send_message(self.conversation_id, "Please wait while we look for a ticket.")
 
-            dest_station = self.__station_service.search_by_name(
-                self.__task1.get_destination_station().strip()
-            )
-            print(dest_station)
-
-            date_string = (
-                self.__task1.get_date_of_travel().capitalize()
-                + ", 2025 "
-                + self.__task1.get_time_of_travel().upper()
-            )
-            print(date_string)
-            date_format = "%B %d, %Y %I:%M %p"
-            datetime_object = datetime.strptime(date_string.strip(), date_format)
-            # print(datetime_object)
-            formatted_date_string = datetime_object.strftime("%Y-%m-%dT%H:%M:%SZ")
-            # print(formatted_date_string)
-            url = ""
-            if len(source_station) == 0 or len(dest_station) == 0:
-
-                engine_response("sorry_no_station")
-
-            else:
-                url = self.__scrapper.run_scrapper(
-                    source_station[0].my_train_code,
-                    dest_station[0].my_train_code,
-                    formatted_date_string,
-                )
-                # print(url)
-            self.__task1.remove_all_info()
-            if url == "":
-                engine_response("sorry_task1")
+            cheapest_ticket = self.__task1.run_scraper()
+            print("cheapest_icket", cheapest_ticket)
+            if type(cheapest_ticket) is str:
+                engine_response(cheapest_ticket)
                 return self.__experta.get_engine_response()
-            return url
+            else:
+                return cheapest_ticket["url"]
 
-        # engine_response('contingency-colchester-manningtree-partial')
-        # user_input_lower = user_input.lower()
-        # for intent, data in self.__intentions.items():
-        #     if any(pattern in user_input_lower for pattern in data["patterns"]):
-        #         return intent, 1.0
-
-        # # Then check sentence-based intents using NLP
-        # best_score = 0
-        # best_intent = None
-
-        # user_doc = self.__spacy(user_input.lower())
-
-        # # Compare with each pre-computed example doc
-        # for intent, example_docs in self.__sentences.items():
-        #     for example_doc in example_docs:
-        #         similarity = user_doc.similarity(example_doc)
-
-        #         if similarity > best_score:
-        #             best_score = similarity
-        #             best_intent = intent
-
-        # print("best score:", best_score)
-
-        # return best_intent, best_score
 
         return self.__experta.get_engine_response()
 

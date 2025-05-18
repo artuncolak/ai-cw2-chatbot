@@ -16,4 +16,5 @@ dependencies = [
     "pandas>=2.2.3",
     "scikit-learn>=1.6.1",
     "qdrant-client>=1.14.2",
+    "scrapy-playwright>=0.0.43"
 ]
