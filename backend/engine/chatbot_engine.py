@@ -138,7 +138,7 @@ class TrainBot(KnowledgeEngine):
 
     @Rule(Book(input='sorry_task1'))
     def say_sorry_task1(self):
-        set_response("Sorry, Something went wrong. Please try again.")
+        set_response("Sorry, Something went wrong. Please try later.")
 
     @Rule(Book(input='sorry_no_station'))
     def say_sorry_no_station(self):

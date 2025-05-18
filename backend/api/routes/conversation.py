@@ -120,11 +120,11 @@ async def conversation_websocket(
             session.commit()
 
             # ---------- EXAMPLE PREDICTION SERVICE USAGE ----------
-            prediction_service: PredictionService = websocket.app.state.prediction_service
-            prediction = prediction_service.predict_arrival_time(
-                current_station="IPS", destination_station="LST", current_delay=9
-            )
-            print(prediction)
+            # prediction_service: PredictionService = websocket.app.state.prediction_service
+            # prediction = prediction_service.predict_arrival_time(
+            #     current_station="IPS", destination_station="LST", current_delay=9
+            # )
+            # print(prediction)
             # ---------- EXAMPLE PREDICTION SERVICE USAGE ----------
 
             await websocket.send_text(str(response))

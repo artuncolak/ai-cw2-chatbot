@@ -15,8 +15,8 @@
         width: 15px;
         aspect-ratio: 1;
         border-radius: 50%;
-        background: oklch(28.6% 0.066 53.813);
-        box-shadow: -20px 0px, 20px 0px oklch(28.6% 0.066 53.813);
+        background: #000;
+        box-shadow: -20px 0px, 20px 0px #000;
         animation: l18 1s infinite;
         position: absolute;
         top: 50%;
@@ -45,15 +45,15 @@
   <body>
     <div
       id="chatbot"
-      class="p-4 flex flex-col justify-center items-center bg-zinc-300 h-screen"
+      class="p-4 flex flex-col justify-center items-center bg-indigo-100 h-screen"
     >
       <div
-        class="shadow-lg p-3 w-xl h-66 min-h-170 justify-items-center backdrop-blur-xs bg-stone-500 rounded-xs"
+        class="shadow-lg p-3 w-xl h-66 min-h-170 justify-items-center backdrop-blur-xs bg-sky-700 rounded-xs"
       >
-        <h1 class="text-3xl font-bold text-stone-200 mb-5">TrainBot</h1>
+        <h1 class="text-3xl font-bold text-white mb-5">TrainBot</h1>
         <div class="loader"></div>
         <div id="chat_section" class="w-5/5 h-8/10">
-          <div class="min-h-9/10 bg-zinc-100 rounded-xs">
+          <div class="min-h-9/10 bg-indigo-100 rounded-xs">
             <ul
               id="messages"
               class="list none p-2 flex flex-col overflow-y-auto max-h-110"
@@ -62,7 +62,7 @@
           <hr />
           <div
             id="input"
-            class="bg-zinc-100 border-t-5 border-t-stone-500 rounded-xs"
+            class="bg-indigo-100 border-t-5 border-t-sky-700 rounded-xs"
           >
             <input
               type="text"
@@ -136,9 +136,9 @@
 
           messageList.appendChild(msg);
           ws.send(input);
-          if (input.includes('AM') || input.includes('PM')) {
-            hideLoader(false)
-          }
+          // if (input.includes('AM') || input.includes('PM')) {
+          //   hideLoader(false)
+          // }
           chatInput.value = "";
           
           
@@ -193,14 +193,17 @@
               msg.innerHTML = reader.result;
             };
           } else {
-            console.log(message.data);
-            if(message.data.includes('https')) {
+            console.log(message.data)
+            if (message.data.includes('wait')) {
+              hideLoader(false)
+               msg.innerHTML = message.data;
+            } else if(message.data.includes('https')) {
               // const anchor =
               hideLoader()
-              msg.innerHTML = `<span>Cheapest ticket I found: <a href=${message.data} target="_blank" class="text-amber-700">YOUR TICKET</a></span>`
+              msg.innerHTML = `<span>Cheapest ticket I found: <a href=${message.data} target="_blank" class="font-bold text-violet-700">YOUR TICKET</a></span>`
             } else {
               msg.innerHTML = message.data;
-
+              hideLoader()
             }
 
           }
@@ -221,12 +224,12 @@
           "break-normal",
           "my-2",
           "p-2",
-          "bg-stone-300",
+          "bg-blue-200",
           "w-fit",
           "shadow-lg",
           "max-w-4/5",
           "font-semibold",
-          "text-stone-700",
+          "text-slate-950",
           "rounded-md"
         );
         node.classList.add(selfEndClass);
