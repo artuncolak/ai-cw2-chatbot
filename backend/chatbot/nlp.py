@@ -2,26 +2,15 @@
 NLP
 """
 
-import json
-import random
 from typing import Dict, List, Tuple, Optional
-from datetime import datetime
 from uuid import UUID
-import spacy
-from spacy.tokens import Doc
-
-from spacy.matcher import Matcher
 
 from .task1 import Task1
 from .task3 import Task3
+from .matcher import  SpacyMatcher
 from engine import engine_response, ExpertaResponse
-# from .my_train_scrapper import MyTrainScrapper, NationalRailScraper
-from station import StationService
-from api.managers import websocket_manager
 
-MODEL_NAME = "en_core_web_md"
-INTENTIONS_FILE = "chatbot/data/intentions.json"
-SENTENCES_FILE = "chatbot/data/sentences.json"
+from api.managers import websocket_manager
 
 
 class NLP:
@@ -33,60 +22,15 @@ class NLP:
 
     def __init__(self, conversation_id: UUID):
         """Initialize the NLP processor with spaCy's English language model."""
-        try:
-            self.__spacy = spacy.load(MODEL_NAME)
-        except OSError:
-            # If model is not found, download it first
-            spacy.cli.download(MODEL_NAME)
-            self.__spacy = spacy.load(MODEL_NAME)
+
         self.__task1 = Task1()
         self.__task3 = Task3()
-        self.__intentions = self._load_intentions(INTENTIONS_FILE)
-        self.__sentences = self._load_sentences(SENTENCES_FILE)
+
         self.__experta = ExpertaResponse()
-        # self.__mytrain_scraper = MyTrainScrapper()
-        # self.__national_scraper = NationalRailScraper()
-        self.__station_service = StationService()
+        self.__matcher = SpacyMatcher()
         self.conversation_id = conversation_id
         self.__current_task = None
 
-    def _load_intentions(self, file_path: str) -> Dict:
-        """Load and parse the intentions JSON file.
-
-        Args:
-            file_path (str): Path to the intentions JSON file
-
-        Returns:
-            Dict: Parsed intentions data
-        """
-        with open(file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def _load_sentences(
-        self, file_path: str
-    ) -> tuple[Dict[str, Dict[str, List[str]]], Dict[str, List[Doc]]]:
-        """Load and parse the sentences JSON file, also create spaCy docs for patterns.
-
-        Args:
-            file_path (str): Path to the sentences JSON file
-
-        Returns:
-            Dict[str, List[Doc]]:
-                A tuple containing the pre-computed spaCy docs
-        """
-        with open(file_path, "r", encoding="utf-8") as f:
-            sentences_data = json.load(f)
-
-        # Pre-compute spaCy docs for all patterns
-        sentences: Dict[str, List[Doc]] = {}
-
-        for intent, data in sentences_data.items():
-            sentences[intent] = []
-            for example in data["patterns"]:
-                example_doc: Doc = self.__spacy(example.lower())
-                sentences[intent].append(example_doc)
-
-        return sentences
 
     async def find_best_match(self, user_input: str) -> str:
         """Find the best matching intent for the user input.
@@ -99,108 +43,13 @@ class NLP:
         """
         # First check basic intentions using pattern matching
 
-        user_doc = self.__spacy(user_input)
-        matcher = Matcher(self.__spacy.vocab)
+        self.__matcher.set_user_doc(user_input)
 
-        # source_pattern = [{"LOWER": "source"}]
+        matches = self.__matcher.perform_matching(user_input)
 
-        greet_pattern = [{"LEMMA": {"IN": ["hey", "hello", "hi"]}}]
-
-        cancel_pattern = [{"LEMMA": {"IN": ["cancel", "abort", "reset"]}}]
-
-        thank_pattern = [
-            {"LEMMA": {"IN": ["thank", "good", "wow", "great", "awesome"]}}
-        ]
-
-        bye_pattern = [{"LEMMA": {"IN": ["done", "nothing", "goodbye", "bye"]}}]
-
-        find_pattern = [{"LEMMA": {"IN": ["train", "ticket", "book", "find", "look"]}}]
-
-        travel_pattern = [{"LEMMA": {"IN": ["travel", "journey"]}}]
-
-        station_pattern = [{"ENT_TYPE": "GPE"}, {"LOWER": "station"}]
-        station_pattern_1 = [
-            {"tag": "NNP"},
-            {"tag": "NNP"},
-            {"tag": "NN"},
-            {"LOWER": "station"},
-        ]
-        station_pattern_2 = [{"tag": "NNP"}, {"tag": "NNP"}, {"LOWER": "station"}]
-
-        source_pattern = [{"LOWER": "from"},{"tag":{"IN": ["NNP", "NNPS", "NNS"]}}]
-        source_pattern_1 = [
-            {"LEMMA": {"IN": ["source", "start", "begin", "origin", "board"]}}
-        ]
-
-        destination_pattern_2 = [{"LOWER": "to"},{"tag":{"IN": ["NNP", "NNPS", "NNS"]}}]
-        # destination_pattern = [{"LOWER": "destination"}]
-        destination_pattern = [
-            {"LEMMA": {"IN": ["destination", "end", "final", "stop", "deboard"]}}
-        ]
-
-        date_pattern = [{"ENT_TYPE": "DATE"}, {"ENT_TYPE": "DATE"}]
-        time_pattern = [{"ENT_TYPE": "TIME"}]
-        time_pattern_1 = [{"ENT_TYPE": "TIME"}, {"ENT_TYPE": "TIME"}]
-
-        delay_pattern = [{"LEMMA": {"IN": ["delay", "late"]}}]
-
-        incident_pattern = [{"LEMMA": {"IN": ["incident", "issue", "problem"]}}]
-        location_pattern = [
-            {"LEMMA": {"IN": ["location", "between", "occur", "happen"]}}
-        ]
-        location_pattern_1 = [
-            {"ENT_TYPE": "GPE"},
-            {"LOWER": "between"},
-            {"ENT_TYPE": "GPE"},
-        ]
-
-        blockage_pattern = [{"LEMMA": {"IN": ["partial", "full"]}}]
-        weather_pattern = [
-            {
-                "LEMMA": {
-                    "IN": [
-                        "high winds",
-                        "wind",
-                        "flood",
-                        "snow",
-                        "frost",
-                        "autumn",
-                        "high temperature",
-                    ]
-                }
-            }
-        ]
-
-        matcher.add("greet", [greet_pattern])
-        matcher.add("cancel", [cancel_pattern])
-        matcher.add("thank", [thank_pattern])
-        matcher.add("bye", [bye_pattern])
-        matcher.add("find", [find_pattern])
-        matcher.add("travel", [travel_pattern])
-        matcher.add("station", [station_pattern, station_pattern_1, station_pattern_2])
-        matcher.add("source", [source_pattern, source_pattern_1])
-        matcher.add("destination", [destination_pattern, destination_pattern_2])
-        matcher.add("date", [date_pattern])
-        matcher.add("time", [time_pattern, time_pattern_1])
-        matcher.add("delay", [delay_pattern])
-        matcher.add("incident", [incident_pattern])
-        matcher.add("location", [location_pattern, location_pattern_1])
-        matcher.add("blockage", [blockage_pattern])
-        matcher.add("blockage_time", [time_pattern, time_pattern_1])
-        matcher.add("weather", [weather_pattern])
-
-        #
-        # lemmatized_input = ''
-        #
-        # for token in user_doc:
-        #     lemmatized_input += token.lemma_ + ' '
-        #
-        # print('LEMMA',lemmatized_input)
-
-        matches = matcher(user_doc)
         for match_id, start, end in matches:
-            string_id = self.__spacy.vocab.strings[match_id]
-            span = user_doc[start:end]
+            string_id = self.__matcher.get_spacy().vocab.strings[match_id]
+            span = self.__matcher.get_user_doc()[start:end]
             print("Match", match_id, span.text, string_id)
 
             if (
@@ -232,29 +81,19 @@ class NLP:
 
             if string_id == "date":
                 self.__task1.set_date_of_travel(span.text)
-                # engine_response(string_id.lower())
-                # if self.__task1.get_time_of_travel() is None:
-                #     engine_response("time")
-                # else:
-                #     self.check_task1_missing_info()
 
             if string_id == "time":
                 time = ""
-                for token in user_doc:
+                for token in self.__matcher.get_user_doc():
                     if token.ent_type_ == "TIME":
                         print(token.text)
                         time += token.text + " "
 
                 self.__task1.set_time_of_travel(time)
 
-                # if self.__task1.get_date_of_travel() is None:
-                #     engine_response("date")
-                # else:
-                #     self.check_task1_missing_info()
-
             if string_id == "source":
                 source_name = ""
-                for token in user_doc:
+                for token in self.__matcher.get_user_doc():
                     if token.lemma_ == "to":
                         break
                     if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS", "NNS"]:
@@ -267,7 +106,7 @@ class NLP:
 
             if string_id == "destination":
                 destination_name = ""
-                for token in user_doc:
+                for token in self.__matcher.get_user_doc():
                     if token.lemma_ == "to":
                         destination_name = ""
                     if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS", "NNS"]:
@@ -279,7 +118,7 @@ class NLP:
 
             if string_id == "location":
                 location = []
-                for token in user_doc:
+                for token in self.__matcher.get_user_doc():
                     print(token.text, token.tag_)
                     if token.tag_ == "NNP" or token.ent_type_ == "GPE":
                         location.append(token.text)
@@ -297,14 +136,7 @@ class NLP:
                 self.__current_task = 3
                 self.__task3.set_type_of_contingency("blockage")
                 self.__task3.set_type_of_blockage(span.text)
-                # engine_response(
-                #     "line_contingency-"
-                #     + self.__task3.get_location_one()
-                #     + "-"
-                #     + self.__task3.get_location_two()
-                #     + "-"
-                #     + self.__task3.get_type_of_blockage()
-                # )
+
                 engine_response("blockage")
 
 
@@ -365,7 +197,7 @@ class NLP:
 
             if self.__current_task == 3:
 
-                if self.__task3.get_type_of_contingency() is "blockage":
+                if self.__task3.get_type_of_contingency() == "blockage":
                     if self.__task3.check_all_details_gathered():
                         engine_response(
                             "line_contingency-"
@@ -381,7 +213,7 @@ class NLP:
                         if task3_response is not None:
                             next_response = task3_response
 
-                if self.__task3.get_type_of_contingency() is "weather":
+                if self.__task3.get_type_of_contingency() == "weather":
                     self.__task3.remove_all_info()
 
                     pass
@@ -394,21 +226,6 @@ class NLP:
 
         return self.__experta.get_engine_response()
 
-    def process_basic_intentions(self, intent: str) -> str:
-        """
-        Process basic intentions from JSON.
-
-        Args:
-            intent (str): Intent to process
-
-        Returns:
-            str: Response from the processed intent
-        """
-
-        if intent in self.__intentions:
-            return random.choice(self.__intentions[intent]["responses"])
-
-        return "I'm not sure how to respond to that."
 
     def check_task1_missing_info(self):
 
