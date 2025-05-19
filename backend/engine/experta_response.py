@@ -12,4 +12,4 @@ class ExpertaResponse:
 
     def set_engine_response(self, engine_response):
         self.engine_response = engine_response
-        # print('changed',self.engine_response)
+        print('changed',self.engine_response)

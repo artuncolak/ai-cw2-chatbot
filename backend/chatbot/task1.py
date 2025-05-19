@@ -47,9 +47,9 @@ class Task1:
         if self.destination_station is None:
             return "destination"
         if self.date_of_travel is None:
-            return "date"
+            return "travel_date"
         if self.time_of_travel is None:
-            return "time"
+            return "travel_time"
 
         return None
 
@@ -118,10 +118,14 @@ class Task1:
                 elif item["price"] < mindict["price"]:
                     mindict = item
         except:
-            raise ConnectionError("Could not connect to website")
+            # raise ConnectionError("Could not connect to website")
+            return "sorry_task1"
+
 
         if mindict == {"price": float('inf')}:
-            raise ConnectionError("Could not connect to website")
+            # raise ConnectionError("Could not connect to website")
+            return "sorry_task1"
+
         else:
             print(f"This is the cheapest item: {mindict}")
 
