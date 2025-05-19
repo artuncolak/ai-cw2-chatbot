@@ -71,8 +71,8 @@ class TrainBot(KnowledgeEngine):
 
     @DefFacts()
     def default_response(self):
-        set_response('I am not sure how to respond to this question.')
-        yield Fact(Greeting="I am not sure how to respond")
+        # set_response('I am not sure how to respond.')
+        yield Fact(Greeting="I am not sure how to respond.")
 
         # for fact in contingencies:
         #     print(fact)
@@ -100,23 +100,28 @@ class TrainBot(KnowledgeEngine):
     def reply_find(self):
         set_response('Sure. What is your source station?')
 
+
+    @Rule(Book(input='cancel'))
+    def reply_cancel(self):
+        set_response('Done. What\'s next?')
+
     @Rule(OR(Book(input='source'), Book(input='board'), Book(input='start'), Book(input='begin')))
     def ask_destination_station(self):
-        set_response('Understood. What is your destination station?')
+        set_response('Understood. What is your source station?')
 
     @Rule(OR(Book(input='destination'), Book(input='last'), Book(input='final'), Book(input='end'), Book(input='deboard')))
     def ask_date_of_travel(self):
-        set_response('Noted. When you are planning to travel?')
+        set_response('Noted. What is your destination?')
 
     @Rule(AS.user_input << Book(input=L('open') | L('return') | L('single')))
     def ticket_type(self, user_input):
         set_response("BOT: you have selected a " + user_input["input"] + ".")
 
-    @Rule(Book(input='date'))
+    @Rule(Book(input='travel_date'))
     def say_date(self):
         set_response('Alright. What is your date of travel?')
 
-    @Rule(Book(input='time'))
+    @Rule(Book(input='travel_time'))
     def say_time(self):
         set_response('Alright. What is your time of travel?')
 
@@ -150,7 +155,7 @@ class TrainBot(KnowledgeEngine):
 
     @Rule(Task3(input='location'))
     def say_location(self):
-        set_response("Noted. Has it caused partial or full line blockage")
+        set_response("Noted. What is the location of the incident?")
 
     @Rule(AS.user_input << WeatherContingency(input=L('frost') | L('snow') | L('flood') | L('temp') | L('wind') | L('autumn')))
     def say_weather(self, user_input):
@@ -160,69 +165,63 @@ class TrainBot(KnowledgeEngine):
 
     @Rule(Task3(input='blockage'))
     def say_blockage(self):
-        set_response("Understood. What would be the approximate time of incident?")
+        set_response("What is type of the blockage has occurred?")
 
     @Rule(Task3(input='blockage_time'))
     def say_blockage(self):
-        set_response("Understood. Please wait while I generate a response.")
+        set_response("What time it happened?")
 
     # @Rule(LineContingency("colchester","manningtree",LineContingency(input="partial")))
     # def say_partial_1(self):
     #     set_response("colchester-manningtree-partial")
     #     find_response("colchester-manningtree-partial")
 
-    @Rule(LineContingency(station_one='colchester', station_two='manningtree', type='partial'))
+    @Rule(OR(LineContingency(station_one='colchester', station_two='manningtree', type='partial'),LineContingency(station_one='manningtree', station_two='colchester', type='partial')))
     def say_partial_cm(self):
         set_response(line_response("colchester-manningtree-partial"))
 
-    @Rule(LineContingency(station_one='colchester', station_two='manningtree', type='full'))
+    @Rule(OR(LineContingency(station_one='colchester', station_two='manningtree', type='full'),LineContingency(station_one='manningtree', station_two='colchester', type='full')))
     def say_full_cm(self):
         set_response(line_response("colchester-manningtree-full"))
 
-    @Rule(LineContingency(station_one='manningtree', station_two='ipswich', type='partial'))
+
+    @Rule(OR(LineContingency(station_one='manningtree', station_two='ipswich', type='partial'),LineContingency(station_one='ipswich', station_two='manningtree', type='partial')))
     def say_partial_mi(self):
         set_response(line_response("manningtree-ipswich-partial"))
 
-    @Rule(LineContingency(station_one='manningtree', station_two='ipswich', type='full'))
+    @Rule(OR(LineContingency(station_one='manningtree', station_two='ipswich', type='full'),LineContingency(station_one='ipswich', station_two='manningtree', type='full')))
     def say_full_mi(self):
-        set_response(line_response("manningtree-ipswich-partial"))
+        set_response(line_response("manningtree-ipswich-full"))
 
-    @Rule(LineContingency(station_one='manningtree', station_two='ipswich', type='partial'))
-    def say_partial_cm(self):
-        set_response(line_response("manningtree-ipswich-partial"))
-
-    @Rule(LineContingency(station_one='manningtree', station_two='ipswich', type='full'))
-    def say_full_cm(self):
-        set_response(line_response("manningtree-ipswich-partial"))
-
-    @Rule(LineContingency(station_one='ipswich', station_two='stowmarket', type='partial'))
+    @Rule(OR(LineContingency(station_one='ipswich', station_two='stowmarket', type='partial'),LineContingency(station_one='stowmarket', station_two='ipswich', type='partial')))
     def say_partial_is(self):
         set_response(line_response("ipswich-stowmarket-partial"))
 
-    @Rule(LineContingency(station_one='ipswich', station_two='stowmarket', type='full'))
+    @Rule(OR(LineContingency(station_one='ipswich', station_two='stowmarket', type='full'),LineContingency(station_one='stowmarket', station_two='ipswich', type='full')))
     def say_full_is(self):
         set_response(line_response("ipswich-stowmarket-full"))
 
-    @Rule(LineContingency(station_one='stowmarket', station_two='diss', type='partial'))
+    @Rule(OR(LineContingency(station_one='stowmarket', station_two='diss', type='partial'),LineContingency(station_one='diss', station_two='stowmarket', type='partial')))
     def say_partial_sd(self):
         set_response(line_response("stowmarket-diss-partial"))
 
-    @Rule(LineContingency(station_one='stowmarket', station_two='diss', type='full'))
+    @Rule(OR(LineContingency(station_one='stowmarket', station_two='diss', type='full'),LineContingency(station_one='diss', station_two='stowmarket', type='full')))
     def say_full_sd(self):
         set_response(line_response("stowmarket-diss-full"))
 
-    @Rule(LineContingency(station_one='diss', station_two='norwich', type='partial'))
+    @Rule(OR(LineContingency(station_one='diss', station_two='norwich', type='partial'),LineContingency(station_one='norwich', station_two='diss', type='partial')))
     def say_partial_dn(self):
         set_response(line_response("diss-norwich-partial"))
 
-    @Rule(LineContingency(station_one='diss', station_two='norwich', type='full'))
+    @Rule(OR(LineContingency(station_one='diss', station_two='norwich', type='full'),LineContingency(station_one='norwich', station_two='diss', type='full')))
     def say_full_dn(self):
         set_response(line_response("diss-norwich-full"))
 
-def engine_response(user_input):
+def engine_response(current_input):
+    user_input = current_input.lower()
     engine = TrainBot()
     engine.reset()
-
+    print('user_input',user_input)
     if 'line_contingency' in user_input:
         up = user_input.split('-')
         engine.declare(LineContingency(station_one=up[1], station_two=up[2], type=up[3]))

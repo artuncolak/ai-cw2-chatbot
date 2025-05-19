@@ -48,6 +48,7 @@ class NLP:
         # self.__national_scraper = NationalRailScraper()
         self.__station_service = StationService()
         self.conversation_id = conversation_id
+        self.__current_task = None
 
     def _load_intentions(self, file_path: str) -> Dict:
         """Load and parse the intentions JSON file.
@@ -98,12 +99,14 @@ class NLP:
         """
         # First check basic intentions using pattern matching
 
-        user_doc = self.__spacy(user_input.lower())
+        user_doc = self.__spacy(user_input)
         matcher = Matcher(self.__spacy.vocab)
 
         # source_pattern = [{"LOWER": "source"}]
 
         greet_pattern = [{"LEMMA": {"IN": ["hey", "hello", "hi"]}}]
+
+        cancel_pattern = [{"LEMMA": {"IN": ["cancel", "abort", "reset"]}}]
 
         thank_pattern = [
             {"LEMMA": {"IN": ["thank", "good", "wow", "great", "awesome"]}}
@@ -124,12 +127,12 @@ class NLP:
         ]
         station_pattern_2 = [{"tag": "NNP"}, {"tag": "NNP"}, {"LOWER": "station"}]
 
-        source_pattern = [{"LOWER": "from"}]
+        source_pattern = [{"LOWER": "from"},{"tag":{"IN": ["NNP", "NNPS", "NNS"]}}]
         source_pattern_1 = [
             {"LEMMA": {"IN": ["source", "start", "begin", "origin", "board"]}}
         ]
 
-        destination_pattern_2 = [{"LOWER": "to"}]
+        destination_pattern_2 = [{"LOWER": "to"},{"tag":{"IN": ["NNP", "NNPS", "NNS"]}}]
         # destination_pattern = [{"LOWER": "destination"}]
         destination_pattern = [
             {"LEMMA": {"IN": ["destination", "end", "final", "stop", "deboard"]}}
@@ -169,6 +172,7 @@ class NLP:
         ]
 
         matcher.add("greet", [greet_pattern])
+        matcher.add("cancel", [cancel_pattern])
         matcher.add("thank", [thank_pattern])
         matcher.add("bye", [bye_pattern])
         matcher.add("find", [find_pattern])
@@ -207,16 +211,32 @@ class NLP:
                 or string_id == "delay"
                 or string_id == "travel"
                 or string_id == "incident"
+                or string_id == "cancel"
             ):
                 engine_response(string_id)
+
+            if string_id == "find":
+                self.__current_task = 1
+
+            if string_id == "cancel":
+                if self.__current_task == 1:
+                    self.__task1.remove_all_info()
+                elif self.__current_task == 2:
+                    pass
+                else:
+                    self.__task3.remove_all_info()
+
+                self.__current_task = None
+                # engine_response(string_id)
+
 
             if string_id == "date":
                 self.__task1.set_date_of_travel(span.text)
                 # engine_response(string_id.lower())
-                if self.__task1.get_time_of_travel() is None:
-                    engine_response("time")
-                else:
-                    self.check_task1_missing_info()
+                # if self.__task1.get_time_of_travel() is None:
+                #     engine_response("time")
+                # else:
+                #     self.check_task1_missing_info()
 
             if string_id == "time":
                 time = ""
@@ -227,10 +247,10 @@ class NLP:
 
                 self.__task1.set_time_of_travel(time)
 
-                if self.__task1.get_date_of_travel() is None:
-                    engine_response("date")
-                else:
-                    self.check_task1_missing_info()
+                # if self.__task1.get_date_of_travel() is None:
+                #     engine_response("date")
+                # else:
+                #     self.check_task1_missing_info()
 
             if string_id == "source":
                 source_name = ""
@@ -243,7 +263,7 @@ class NLP:
                         # break
 
                 self.__task1.set_source_station(source_name)
-                engine_response("source")
+                # engine_response("source")
 
             if string_id == "destination":
                 destination_name = ""
@@ -255,13 +275,13 @@ class NLP:
                         destination_name += token.text.capitalize() + " "
 
                 self.__task1.set_destination_station(destination_name)
-                engine_response("destination")
+                # engine_response("destination")
 
             if string_id == "location":
                 location = []
                 for token in user_doc:
                     print(token.text, token.tag_)
-                    if token.tag_ == "NNP" or token.tag_ == "NN":
+                    if token.tag_ == "NNP" or token.ent_type_ == "GPE":
                         location.append(token.text)
 
                     if token.tag_ == "TIME":
@@ -269,27 +289,39 @@ class NLP:
 
                 self.__task3.set_location_one(location[0])
                 self.__task3.set_location_two(location[1])
-                engine_response("location")
+
+
+                # engine_response("location")
 
             if string_id == "blockage":
+                self.__current_task = 3
+                self.__task3.set_type_of_contingency("blockage")
                 self.__task3.set_type_of_blockage(span.text)
-                engine_response(
-                    "line_contingency-"
-                    + self.__task3.get_location_one()
-                    + "-"
-                    + self.__task3.get_location_two()
-                    + "-"
-                    + self.__task3.get_type_of_blockage()
-                )
+                # engine_response(
+                #     "line_contingency-"
+                #     + self.__task3.get_location_one()
+                #     + "-"
+                #     + self.__task3.get_location_two()
+                #     + "-"
+                #     + self.__task3.get_type_of_blockage()
+                # )
+                engine_response("blockage")
+
 
             if string_id == "weather":
+                self.__current_task = 3
                 print(span.text)
+                self.__task3.set_type_of_contingency("weather")
                 if span.text[-1:] == "s":
                     engine_response("weather_contingency-" + span.text[0:-1])
                 else:
                     engine_response("weather_contingency-" + span.text)
 
+                # return self.__experta.get_engine_response()
+
+
         if len(matches) == 0:
+            print('Hope this not running....')
             engine_response(user_input.lower())
 
         print("TASK 1 INFO ")
@@ -304,19 +336,61 @@ class NLP:
         print(self.__task3.get_location_one())
         print(self.__task3.get_location_two())
 
-        if self.__task1.check_all_details_gathered():
+        next_response = None
+        print('current task- ', self.__current_task)
 
+        if self.__current_task is not None:
+            if self.__current_task == 1:
+                task1_response = self.__task1.check_what_info_missing()
+                print('task1_response', task1_response)
+                if task1_response is None:
 
-            await websocket_manager.send_message(self.conversation_id, "Please wait while we look for a ticket.")
+                    if self.__task1.check_all_details_gathered():
 
-            cheapest_ticket = self.__task1.run_scraper()
-            print("cheapest_icket", cheapest_ticket)
-            if type(cheapest_ticket) is str:
-                engine_response(cheapest_ticket)
-                return self.__experta.get_engine_response()
-            else:
-                return cheapest_ticket["url"]
+                        await websocket_manager.send_message(self.conversation_id, "Please wait while we look for a ticket.")
 
+                        cheapest_ticket = self.__task1.run_scraper()
+                        print("cheapest_icket", cheapest_ticket)
+                        if type(cheapest_ticket) is str:
+                            engine_response(cheapest_ticket)
+                            return self.__experta.get_engine_response()
+                        else:
+                            return cheapest_ticket["url"]
+
+                else:
+                    next_response = task1_response
+
+            if self.__current_task == 2:
+                pass
+
+            if self.__current_task == 3:
+
+                if self.__task3.get_type_of_contingency() is "blockage":
+                    if self.__task3.check_all_details_gathered():
+                        engine_response(
+                            "line_contingency-"
+                            + self.__task3.get_location_one()
+                            + "-"
+                            + self.__task3.get_location_two()
+                            + "-"
+                            + self.__task3.get_type_of_blockage()
+                        )
+                        self.__task3.remove_all_info()
+                    else:
+                        task3_response = self.__task3.check_what_info_missing()
+                        if task3_response is not None:
+                            next_response = task3_response
+
+                if self.__task3.get_type_of_contingency() is "weather":
+                    self.__task3.remove_all_info()
+
+                    pass
+
+                # else:
+                #     next_response = task3_response
+
+        if next_response is not None:
+            engine_response(next_response)
 
         return self.__experta.get_engine_response()
 
