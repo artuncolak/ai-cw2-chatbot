@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import numpy as np
-from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+from qdrant_client.http.models import Filter, FieldCondition, MatchValue, models
 from collections import Counter
+import random
+import time
+import numpy
 
 from prediction.embedding.embedding_manager import EmbeddingManager
 from prediction.embedding.qdrant_manager import QdrantManager
@@ -383,5 +386,103 @@ def get_prediction_service() -> PredictionService:
         qdrant_manager.upload_embeddings(embeddings)
 
     prediction_service = PredictionService(qdrant_manager, embedding_manager)
+
+    return prediction_service
+
+def get_test_prediction_service() -> PredictionService:
+    """Get a prediction service for testing"""
+    embedding_manager = EmbeddingManager()
+
+    embeddings = embedding_manager.generate_embeddings(
+        [
+            "data/service/2022_service_details.csv",
+            "data/service/2023_service_details.csv",
+            "data/service/2024_service_details.csv",
+        ]
+    )
+
+    qdrant_manager = QdrantManager(embedding_dim=embedding_manager.embedding_dim)
+
+    is_collection_exists = qdrant_manager.is_collection_exists()
+
+    dataset_iterator = iter(embeddings)
+    testing_number = 10000
+    print("There are " + str(len(embeddings)) + " embeddings overall.")
+    testing_embeddings = [next(dataset_iterator) for _ in range(testing_number)]
+    print("There are " + str(len(testing_embeddings)) + " embeddings for testing.")
+    training_embeddings = [next(dataset_iterator) for _ in range(len(embeddings) - testing_number)]
+#    training_embeddings = [next(dataset_iterator) for _ in range(10)]
+    print("There are " + str(len(training_embeddings)) + " embeddings for training.")
+    if not is_collection_exists:
+        qdrant_manager.initialize_collection()
+        qdrant_manager.upload_embeddings(training_embeddings)
+
+    prediction_service = PredictionService(qdrant_manager, embedding_manager)
+
+    def avg_precision_at_k(k: int):
+        precisions = []
+        for item in testing_embeddings:
+#            print(item[1])
+            ann_result = qdrant_manager.client.query_points(
+                    collection_name=qdrant_manager.collection_name,
+                    query=item[1],
+                    limit=k,
+                    ).points
+            knn_result = qdrant_manager.client.query_points(
+                    collection_name=qdrant_manager.collection_name,
+                    query=item[1],
+                    limit=k,
+                    search_params=models.SearchParams(
+                        exact=True,
+                        ),
+                    ).points
+            ann_ids = set(item.id for item in ann_result)
+            knn_ids = set(item.id for item in knn_result)
+            precision = len(ann_ids.intersection(knn_ids)) / k
+            precisions.append(precision)
+    
+        return sum(precisions) / len(precisions)
+
+    def avg_cosine_and_dot_product_of_ann(k: int):
+
+        cosine_precisions = []
+        dot_precisions = []
+
+        def apply_normalisation_factor(vector):
+            sum_squares = 0.0
+            for i in vector:
+                sum_squares += pow(i, 2)
+            return_list = []
+            normalisation_factor = pow(sum_squares, 0.5)
+            for i in vector:
+                return_list.append(i/normalisation_factor)
+            return(return_list)
+
+        for item in testing_embeddings:
+#            print(item[1])
+            ann_result = qdrant_manager.client.search(
+                    collection_name=qdrant_manager.collection_name,
+                    query_vector=item[1],
+                    limit=k,
+                    with_vectors=True,
+                    )
+            vec_a = apply_normalisation_factor(item[1])
+            vec_b = apply_normalisation_factor(ann_result[0].vector)
+            cosine_precision = numpy.dot(item[1], ann_result[0].vector)/(numpy.linalg.norm(item[1])* numpy.linalg.norm(ann_result[0].vector))
+            dot_precision = numpy.dot(vec_a, vec_b, out = None)
+#            print(item[1])
+#            print(ann_result[0].vector)
+            dot_precisions.append(dot_precision)
+            cosine_precisions.append(cosine_precision)
+        return (sum(cosine_precisions) / len(cosine_precisions)), (sum(dot_precisions) / len(dot_precisions))
+#            return 0
+
+    start_time = time.time()
+    print("Ann accuracy: " + str(avg_precision_at_k(1)))
+    cosine_avg, dot_product_avg = avg_cosine_and_dot_product_of_ann(1)
+    print("Cosine accuracy: " + str(cosine_avg))
+    print("Dot product accuracy: " + str(dot_product_avg))
+    end_time = time.time()
+    print("In " + str(end_time - start_time) + " seconds.")
 
     return prediction_service
