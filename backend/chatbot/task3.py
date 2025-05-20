@@ -9,6 +9,7 @@ class Task3:
         self.time_of_incident = None
         self.type_of_blockage = None
         self.type_of_contingency = None
+        self.confirmed = False
 
 
 
@@ -22,6 +23,8 @@ class Task3:
         return self.type_of_blockage
     def get_type_of_contingency(self):
         return self.type_of_contingency
+    def get_confirmed(self):
+        return self.confirmed
 
     def set_location_one(self, location_one):
         self.location_one = location_one
@@ -33,6 +36,8 @@ class Task3:
         self.type_of_blockage = type_of_blockage
     def set_type_of_contingency(self, type_of_contingency):
         self.type_of_contingency = type_of_contingency
+    def set_confirmed(self, status):
+        self.confirmed = status
 
     def check_all_details_gathered(self):
 
@@ -70,4 +75,5 @@ class Task3:
         self.time_of_incident = None
         self.type_of_blockage = None
         self.type_of_contingency = None
+        self.confirmed = False
 
