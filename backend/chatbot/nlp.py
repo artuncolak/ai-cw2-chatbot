@@ -67,6 +67,13 @@ class NLP:
             if string_id == "find":
                 self.__current_task = 1
 
+            if string_id == "confirm" and self.__current_task == 1:
+                self.__task1.set_confirmed(True)
+
+            if string_id == "confirm" and self.__current_task == 3:
+                self.__task3.set_confirmed(True)
+
+
             if string_id == "cancel":
                 if self.__current_task == 1:
                     self.__task1.remove_all_info()
@@ -107,9 +114,10 @@ class NLP:
             if string_id == "destination":
                 destination_name = ""
                 for token in self.__matcher.get_user_doc():
+                    print(token.text, token.lemma_, token.ent_type_, token.tag_)
                     if token.lemma_ == "to":
                         destination_name = ""
-                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS", "NNS"]:
+                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS", "NNS"] and token.ent_type_ is not "DATE":
 
                         destination_name += token.text.capitalize() + " "
 
@@ -174,8 +182,14 @@ class NLP:
         if self.__current_task is not None:
             if self.__current_task == 1:
                 task1_response = self.__task1.check_what_info_missing()
+
                 print('task1_response', task1_response)
                 if task1_response is None:
+
+                    if self.__task1.get_confirmed() is False:
+                        confirmation_message = "<b>Your search:</b> <br> Source: " + self.__task1.get_source_station() + "<br> Destination: " + self.__task1.get_destination_station() + "<br> Date: " + self.__task1.get_date_of_travel() + "<br> Time: " + self.__task1.get_time_of_travel() + "<br> Please type 'yes' to confirm, 'no' to reset."
+
+                        return confirmation_message
 
                     if self.__task1.check_all_details_gathered():
 
@@ -187,6 +201,7 @@ class NLP:
                             engine_response(cheapest_ticket)
                             return self.__experta.get_engine_response()
                         else:
+                            self.__current_task = None
                             return cheapest_ticket["url"]
 
                 else:
@@ -199,6 +214,12 @@ class NLP:
 
                 if self.__task3.get_type_of_contingency() == "blockage":
                     if self.__task3.check_all_details_gathered():
+
+                        if self.__task3.get_confirmed() is False:
+                            confirmation_message = "<b>Incident details:</b> <br> Type: Line " + self.__task3.get_type_of_contingency() + "<br> Location: " + self.__task3.get_location_one() + "-" + self.__task3.get_location_two() + "<br> Blockage: " + self.__task3.get_type_of_blockage().upper() + "<br> Please type 'yes' to confirm, 'no' to reset."
+
+                            return confirmation_message
+
                         engine_response(
                             "line_contingency-"
                             + self.__task3.get_location_one()
@@ -207,7 +228,9 @@ class NLP:
                             + "-"
                             + self.__task3.get_type_of_blockage()
                         )
+
                         self.__task3.remove_all_info()
+                        self.__current_task = None
                     else:
                         task3_response = self.__task3.check_what_info_missing()
                         if task3_response is not None:
@@ -215,7 +238,7 @@ class NLP:
 
                 if self.__task3.get_type_of_contingency() == "weather":
                     self.__task3.remove_all_info()
-
+                    self.__current_task = None
                     pass
 
                 # else:

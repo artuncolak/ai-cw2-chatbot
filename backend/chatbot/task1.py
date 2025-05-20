@@ -11,6 +11,7 @@ class Task1:
         self.source_station = None
         self.time_of_travel = None
         self.date_of_travel = None
+        self.confirmed = False
         self.__mytrain_scraper = MyTrainScrapper()
         self.__national_scraper = NationalRailScraper()
         self.__station_service = StationService()
@@ -25,6 +26,8 @@ class Task1:
         return self.time_of_travel
     def get_date_of_travel(self):
         return self.date_of_travel
+    def get_confirmed(self):
+        return self.confirmed
 
     def set_destination_station(self, destination_station):
         self.destination_station = destination_station
@@ -34,9 +37,11 @@ class Task1:
         self.time_of_travel = time_of_travel
     def set_date_of_travel(self, date_of_travel):
         self.date_of_travel = date_of_travel
+    def set_confirmed(self, status):
+        self.confirmed = status
 
     def check_all_details_gathered(self):
-        if self.destination_station is None or self.source_station is None or self.time_of_travel is None or self.date_of_travel is None:
+        if self.destination_station is None or self.source_station is None or self.time_of_travel is None or self.date_of_travel is None or self.confirmed is False:
             return False
         else:
             return True
@@ -51,6 +56,7 @@ class Task1:
         if self.time_of_travel is None:
             return "travel_time"
 
+
         return None
 
     def remove_all_info(self):
@@ -58,6 +64,7 @@ class Task1:
         self.destination_station = None
         self.time_of_travel = None
         self.date_of_travel = None
+        self.confirmed = False
 
 
     def run_scraper(self):
