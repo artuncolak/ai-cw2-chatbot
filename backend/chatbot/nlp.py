@@ -1,14 +1,18 @@
 """
 NLP
 """
-
+import datetime
 from typing import Dict, List, Tuple, Optional
 from uuid import UUID
 
+from fastapi import WebSocket
+
 from .task1 import Task1
+from .task2 import Task2
 from .task3 import Task3
 from .matcher import  SpacyMatcher
 from engine import engine_response, ExpertaResponse
+from prediction.prediction_service import PredictionService
 
 from api.managers import websocket_manager
 
@@ -24,15 +28,15 @@ class NLP:
         """Initialize the NLP processor with spaCy's English language model."""
 
         self.__task1 = Task1()
+        self.__task2 = Task2()
         self.__task3 = Task3()
-
         self.__experta = ExpertaResponse()
         self.__matcher = SpacyMatcher()
         self.conversation_id = conversation_id
         self.__current_task = None
 
 
-    async def find_best_match(self, user_input: str) -> str:
+    async def find_best_match(self, user_input: str, websocket: WebSocket) -> str:
         """Find the best matching intent for the user input.
 
         Args:
@@ -67,8 +71,14 @@ class NLP:
             if string_id == "find":
                 self.__current_task = 1
 
+            if string_id == "delay":
+                self.__current_task = 2
+
             if string_id == "confirm" and self.__current_task == 1:
                 self.__task1.set_confirmed(True)
+
+            if string_id == "confirm" and self.__current_task == 2:
+                self.__task2.set_confirmed(True)
 
             if string_id == "confirm" and self.__current_task == 3:
                 self.__task3.set_confirmed(True)
@@ -78,7 +88,7 @@ class NLP:
                 if self.__current_task == 1:
                     self.__task1.remove_all_info()
                 elif self.__current_task == 2:
-                    pass
+                    self.__task2.remove_all_info()
                 else:
                     self.__task3.remove_all_info()
 
@@ -93,12 +103,18 @@ class NLP:
                 time = ""
                 for token in self.__matcher.get_user_doc():
                     if token.ent_type_ == "TIME":
-                        print(token.text)
                         time += token.text + " "
 
-                self.__task1.set_time_of_travel(time)
+                    print('CURRENT TASK', self.__current_task)
+                    print(token.text, token.ent_type_, token.tag_, token.lemma_)
 
-            if string_id == "source":
+                    if self.__current_task == 2 and token.tag_ == "CD":
+                            self.__task2.set_delay(token.text)
+
+                if self.__current_task == 1:
+                    self.__task1.set_time_of_travel(time)
+
+            if string_id == "source" or string_id == "current":
                 source_name = ""
                 for token in self.__matcher.get_user_doc():
                     if token.lemma_ == "to":
@@ -108,7 +124,10 @@ class NLP:
                         source_name += token.text.capitalize() + " "
                         # break
 
-                self.__task1.set_source_station(source_name)
+                if self.__current_task == 1:
+                    self.__task1.set_source_station(source_name)
+                else:
+                    self.__task2.set_current_station(source_name)
                 # engine_response("source")
 
             if string_id == "destination":
@@ -121,7 +140,10 @@ class NLP:
 
                         destination_name += token.text.capitalize() + " "
 
-                self.__task1.set_destination_station(destination_name)
+                if self.__current_task == 1:
+                    self.__task1.set_destination_station(destination_name)
+                else:
+                    self.__task2.set_destination_station(destination_name)
                 # engine_response("destination")
 
             if string_id == "location":
@@ -159,16 +181,48 @@ class NLP:
 
                 # return self.__experta.get_engine_response()
 
+            if string_id == "today":
+                if self.__current_task == 1:
+
+                    now = datetime.datetime.now()
+                    # print(now.strftime("%B %d"))
+
+                    self.__task1.set_date_of_travel(now.strftime("%B %d"))
+                    # print(now.strftime("%I:%M %p"))
+
+            if string_id == "tomorrow":
+                if self.__current_task == 1:
+                    today = datetime.date.today()
+                    tomorrow = today + datetime.timedelta(days=1)
+                    # print(tomorrow.strftime("%B %d"))
+                    self.__task1.set_date_of_travel(tomorrow.strftime("%B %d"))
+                    # print(tomorrow.strftime("%I:%M %p"))
+
+
+            # if string_id == "minute":
+            #     print(span.text)
+            #     for token in self.__matcher.get_user_doc():
+            #         print(token.text, token.tag_)
+            #         if token.ent_type_ == "CD":
+            #             self.__task2.set_delay(token.text)
+
+
 
         if len(matches) == 0:
             print('Hope this not running....')
-            engine_response(user_input.lower())
+            engine_response("")
 
         print("TASK 1 INFO ")
         print(self.__task1.get_time_of_travel())
         print(self.__task1.get_date_of_travel())
         print(self.__task1.get_source_station())
         print(self.__task1.get_destination_station())
+
+        print("TASK 2 INFO ")
+        print(self.__task2.get_current_station())
+        print(self.__task2.get_destination_station())
+        print(self.__task2.get_delay())
+        # print(self.__task1.get_destination_station())
 
         print("TASK 3 INFO")
         print(self.__task3.get_type_of_blockage())
@@ -208,7 +262,50 @@ class NLP:
                     next_response = task1_response
 
             if self.__current_task == 2:
-                pass
+
+                task2_response = self.__task2.check_what_info_missing()
+
+                print('task2_response', task2_response)
+                if task2_response is None:
+
+                    if self.__task2.get_confirmed() is False:
+                        confirmation_message = "<b>Your search:</b> <br> Current Station: " + self.__task2.get_current_station() + "<br> Destination Station: " + self.__task2.get_destination_station() + "<br> Current Delay(mins): " + self.__task2.get_delay() + "<br> Please type 'yes' to confirm, 'no' to reset."
+                        return confirmation_message
+
+                    if self.__task2.check_all_details_gathered():
+
+                        await websocket_manager.send_message(self.conversation_id,
+                                                             "Please wait while we calculate the delay.")
+
+                        prediction_service: PredictionService = websocket.app.state.prediction_service
+                        current_station = self.__task2.search_current_station()
+                        destination_station = self.__task2.search_destination_station()
+
+                        print(current_station[0].code)
+                        print(destination_station[0].code)
+
+                        if len(current_station) == 0 or len(destination_station) == 0:
+                            next_response = "sorry_no_station"
+                            self.__task2.remove_all_info()
+                        else:
+                            try:
+                                print('PRediction')
+                                prediction = prediction_service.predict_arrival_time(
+                                current_station='IPS', destination_station='LST', current_delay=8
+                                )
+                                # print(prediction)
+                                self.__task2.remove_all_info()
+                                return "<b>Delay at " + prediction['destination'] + ": </b> <span class='text-rose-700 font-semibold'>" + str(prediction['propagated_delay']) + " min. </span>" + "<br> Current Time: " + prediction['current_time'] + "<br> <b>ETA:</b> " + prediction['predicted_arrival_time'] + "<br> Estimated Journey time: " + str(prediction['estimated_journey_time']) + " min."
+                            except:
+                                self.__task2.remove_all_info()
+                                return "Something went wrong. Please try again."
+
+                        # print(prediction)
+                        # return prediction
+
+                else:
+                    next_response = task2_response
+
 
             if self.__current_task == 3:
 

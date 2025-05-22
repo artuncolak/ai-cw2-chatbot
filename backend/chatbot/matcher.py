@@ -26,7 +26,7 @@ class SpacyMatcher:
 
         self.bye_pattern = [{"LEMMA": {"IN": ["done", "nothing", "goodbye", "bye"]}}]
 
-        self.find_pattern = [{"LEMMA": {"IN": ["train", "ticket", "book", "find", "look"]}}]
+        self.find_pattern = [{"LEMMA": {"IN": ["ticket", "book", "find", "look"]}}]
 
         self.travel_pattern = [{"LEMMA": {"IN": ["travel", "journey"]}}]
 
@@ -47,6 +47,7 @@ class SpacyMatcher:
         ]
         self.source_pattern_3 = [{"TEXT": {"FUZZY": "source"}}]
 
+        self.current_pattern = [{"LEMMA": {"IN": ["current"]}}]
 
         self.destination_pattern_2 = [{"LOWER": "to"}, {"tag": {"IN": ["NNP", "NNPS", "NNS"]}}]
         # destination_pattern = [{"LOWER": "destination"}]
@@ -60,7 +61,7 @@ class SpacyMatcher:
         self.time_pattern = [{"ENT_TYPE": "TIME"}]
         self.time_pattern_1 = [{"ENT_TYPE": "TIME"}, {"ENT_TYPE": "TIME"}]
 
-        self.delay_pattern = [{"LEMMA": {"IN": ["delay", "late"]}}]
+        # self.delay_pattern = [{"LEMMA": {"IN": ["delay", "late"]}}]
 
         self.incident_pattern = [{"LEMMA": {"IN": ["incident", "issue", "problem"]}}]
         self.location_pattern = [
@@ -73,7 +74,13 @@ class SpacyMatcher:
         ]
 
         self.blockage_pattern = [{"LEMMA": {"IN": ["partial", "full"]}}]
-        # self.blockage_pattern_1 = [{"TEXT": {"FUZZY": "partial"}}]
+
+        self.delay_pattern = [{"LEMMA": {"IN": ["delay", "late"]}}]
+        self.mins_pattern = [{"LEMMA": {"IN": ["mins", "min","minutes"]}}]
+        self.tom_pattern = [{"LEMMA": {"IN": ["tomorrow"]}}]
+        self.tom_pattern_1 = [{"TEXT": {"FUZZY": "tomorrow"}}]
+
+        self.today_pattern = [{"LEMMA": {"IN": ["today"]}}]
 
         self.weather_pattern = [
             {
@@ -106,13 +113,20 @@ class SpacyMatcher:
         self.matcher.add("destination", [self.destination_pattern, self.destination_pattern_2, self.destination_pattern_3])
         self.matcher.add("date", [self.date_pattern])
         self.matcher.add("time", [self.time_pattern, self.time_pattern_1])
-        self.matcher.add("delay", [self.delay_pattern])
+        # self.matcher.add("delay", [self.delay_pattern])
         self.matcher.add("incident", [self.incident_pattern])
         self.matcher.add("location", [self.location_pattern, self.location_pattern_1])
         self.matcher.add("blockage", [self.blockage_pattern])
-        self.matcher.add("blockage_time", [self.time_pattern, self.time_pattern_1])
+        # self.matcher.add("blockage_time", [self.time_pattern, self.time_pattern_1])
         self.matcher.add("weather", [self.weather_pattern])
         self.matcher.add("confirm", [self.confirm_pattern])
+        self.matcher.add("delay", [self.delay_pattern])
+        self.matcher.add("current", [self.current_pattern])
+        self.matcher.add("tomorrow", [self.tom_pattern, self.tom_pattern_1])
+        self.matcher.add("today", [self.today_pattern])
+
+        # self.matcher.add("minute", [self.mins_pattern])
+
 
         self.user_doc = None
 

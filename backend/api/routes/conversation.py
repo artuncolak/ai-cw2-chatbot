@@ -110,7 +110,7 @@ async def conversation_websocket(
             session.add(user_message)
 
             # Get chatbot response
-            response = await chatbot.get_response(message)
+            response = await chatbot.get_response(message, websocket)
 
             # Store bot response
             bot_message = Message(
@@ -119,10 +119,10 @@ async def conversation_websocket(
             session.add(bot_message)
             session.commit()
 
-            # ---------- EXAMPLE PREDICTION SERVICE USAGE ----------
+            # # ---------- EXAMPLE PREDICTION SERVICE USAGE ----------
             # prediction_service: PredictionService = websocket.app.state.prediction_service
             # prediction = prediction_service.predict_arrival_time(
-            #     current_station="IPS", destination_station="LST", current_delay=9
+            #     current_station="IPS", destination_station="LST", current_delay=8
             # )
             # print(prediction)
             # ---------- EXAMPLE PREDICTION SERVICE USAGE ----------

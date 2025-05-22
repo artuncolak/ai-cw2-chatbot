@@ -59,6 +59,9 @@ class Book(Fact):
 class Task3(Fact):
     pass
 
+class Delay(Fact):
+    pass
+
 class LineContingency(Fact):
     station_one = Field(str, mandatory=True)
     station_two = Field(str, mandatory=True)
@@ -71,7 +74,7 @@ class TrainBot(KnowledgeEngine):
 
     @DefFacts()
     def default_response(self):
-        # set_response('I am not sure how to respond.')
+        set_response('I am not sure how to respond.')
         yield Fact(Greeting="I am not sure how to respond.")
 
         # for fact in contingencies:
@@ -125,9 +128,9 @@ class TrainBot(KnowledgeEngine):
     def say_time(self):
         set_response('Alright. What is your time of travel?')
 
-    @Rule(Book(input='delay'))
-    def say_delay(self):
-        set_response('I can help you with that. Which train are you on?')
+    # @Rule(Book(input='delay'))
+    # def say_delay(self):
+    #     set_response('I can help you with that. Which train are you on?')
 
     @Rule(Book(input='travel'))
     def reply_travel(self):
@@ -148,6 +151,24 @@ class TrainBot(KnowledgeEngine):
     @Rule(Book(input='sorry_no_station'))
     def say_sorry_no_station(self):
         set_response("Sorry, I could not find the relevant station. Please check the names and try again.")
+
+    @Rule(Delay(input='delay'))
+    def say_delay(self):
+        set_response('I can help you with that. What is your current or closest station?')
+
+    @Rule(Delay(input='current_station'))
+    def say_current_station(self):
+        print('Reached current staiton')
+        set_response('What is your current or closest station?')
+
+    @Rule(Delay(input='destination_station'))
+    def say_destination_station(self):
+        set_response('What is your destination station?')
+
+    @Rule(Delay(input='delay_time'))
+    def say_current_station(self):
+        set_response('What is the current delay of your train?')
+
 
     @Rule(Task3(input='incident'))
     def say_incident(self):
@@ -233,7 +254,7 @@ def engine_response(current_input):
     else:
         if user_input is not None:
 
-            engine.declare(Greeting(input=user_input),Book(input=user_input), Task3(input=user_input))
+            engine.declare(Greeting(input=user_input),Book(input=user_input), Task3(input=user_input), Delay(input=user_input))
             # engine.declare(Book(user_input))   # adds a new fact to the list of factlist
             # engine.declare(LineContingency(station_one=up[1], station_two=up[2], type=up[3]))
             engine.run()

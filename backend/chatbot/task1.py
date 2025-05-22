@@ -91,7 +91,7 @@ class Task1:
         # print(formatted_date_string)
         ticket = []
         if len(source_station) == 0 or len(dest_station) == 0:
-
+            self.remove_all_info()
             return "sorry_no_station"
 
         else:

@@ -5,6 +5,8 @@ ChatBot
 from datetime import datetime
 from uuid import UUID
 
+from fastapi import WebSocket
+
 from .nlp import NLP
 
 CONFIDENCE_THRESHOLD = 0.5
@@ -33,7 +35,7 @@ class ChatBot:
         """
         return datetime.now().strftime("%A, %B %d, %Y")
 
-    async def get_response(self, user_input: str) -> str:
+    async def get_response(self, user_input: str, websocket: WebSocket) -> str:
         """Generate a response based on user input.
 
         Args:
@@ -60,7 +62,7 @@ class ChatBot:
         #     case _:
         #         return self.__nlp.process_basic_intentions(intent)
 
-        return await  self.__nlp.find_best_match(user_input)
+        return await  self.__nlp.find_best_match(user_input, websocket)
 
     def get_engine_response(self, response: str) -> str:
         return response
