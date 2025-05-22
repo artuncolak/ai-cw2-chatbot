@@ -8,3 +8,9 @@ I will be leaving at <time - 11:00, 11 AM, 12 PM>
 
 
 // in future we can add more ways to catch same context. Right now matcher matches for source and destination keywords.
+
+hi
+Is my train delayed?
+current station is Ipswich
+destination station is Liverpool Street London
+8 mins
