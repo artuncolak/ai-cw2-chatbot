@@ -95,21 +95,32 @@ class Task1:
             return "sorry_no_station"
 
         else:
-            m_ticket = self.__mytrain_scraper.run_scrapper(
-                source_station[0].my_train_code,
-                dest_station[0].my_train_code,
-                formatted_date_string,
+#            m_ticket = self.__mytrain_scraper.run_scrapper(
+#                source=source_station[0].my_train_code,
+#                destination=dest_station[0].my_train_code,
+#                leaving_date_time=formatted_date_string,
+#                leaving_type="DepartingAt",
+#                returning_type=None,
+#                return_date_time=None,
+#                adults=1,
+#                children=0,
+#                railcards=[['YNG', 1]],
+#            )
+            n_ticket = self.__national_scraper.run_scrapper(
+                source=source_station[0].code,
+                destination=dest_station[0].code,
+                leaving_date_time=formatted_date_string,
+                leaving_type="DepartingAt",
+                returning_type=None,
+                return_date_time=None,
+                adults=1,
+                children=0,
+                railcards=[['YNG', 1]],
             )
-            # n_ticket = self.__national_scraper.run_scrapper(
-            #     source_station[0].code,
-            #     dest_station[0].code,
-            #     formatted_date_string,
-            # )
-            print(m_ticket)
-            if type(m_ticket) is not str:
-                ticket.extend(m_ticket)
-            # if type(n_ticket) is list:
-            #     ticket.extend(n_ticket)
+#            print(m_ticket)
+#            if type(m_ticket) is not str:
+#                ticket.extend(m_ticket)
+            ticket.extend(n_ticket)
 
             print(ticket)
 

@@ -129,8 +129,8 @@ class NationalRailScraper:
         self.url = ''
 
     def run_scrapper(self, source=None, destination=None, leaving_date_time=None,
-                     leaving_type="DepartingAt", ticket_type="oneWay", returning_type=None,
-                     return_date_time=None, adults=1, children=0, railcards=[]):
+                     returning_type=None, return_date_time=None, adults=1, children=0, 
+                     railcards=[], leaving_type="DepartingAt", ticket_type="oneWay"):
         ticket_planner = {}
         if ticket_type == "oneWay":
             ticket_planner['ticket_type'] = "single"
@@ -205,6 +205,7 @@ class NationalRailScraper:
                           )
 
         process.start()  # the script will block here until the crawling is finished
+#        dispatcher.connect(crawler_results, signals.spider_closed)
         return results
 
 
@@ -217,9 +218,9 @@ class MyTrainScrapper:
         self.driver = webdriver.Chrome(options=self.options)
         self.url = ''
 
-    def run_scrapper(self, source=None, destination=None, leaving_date_time=None, ticket_type="oneWay",
-                     leaving_type="DepartingAt", returning_type=None,
-                     return_date_time=None, adults=1, children=0, railcards=[]):
+    def run_scrapper(self, source=None, destination=None, leaving_date_time=None,
+                     returning_type=None, return_date_time=None, adults=1, children=0,
+                     railcards=[], ticket_type="oneWay", leaving_type="DepartingAt", ):
         self.ticket_type = ticket_type
         self.source = source
         self.destination = destination
