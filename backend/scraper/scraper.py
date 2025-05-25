@@ -209,7 +209,7 @@ class NationalRailScraper:
         return results
 
 
-class MyTrainScrapper:
+class MyTrainScraper:
 
     def __init__(self):
         self.options = webdriver.ChromeOptions()
@@ -217,6 +217,16 @@ class MyTrainScrapper:
 
         self.driver = webdriver.Chrome(options=self.options)
         self.url = ''
+        self.ticket_type = None
+        self.source = None
+        self.destination = None
+        self.leaving_type = None
+        self.leaving_date_time = None
+        self.returning_type = None
+        self.return_date_time = None
+        self.adults = None
+        self.children = None
+        self.railcards = None
 
     def run_scrapper(self, source=None, destination=None, leaving_date_time=None,
                      returning_type=None, return_date_time=None, adults=1, children=0,
@@ -330,5 +340,123 @@ class MyTrainScrapper:
 
             return scraped_tickets
         except:
-            return "Sorry_task1"
+            return []
+
+
+class NorthernRailwayScraper:
+    def __init__(self):
+        # self.options = webdriver.ChromeOptions()
+        # self.options.add_argument('--headless=new')
+
+        # self.driver = webdriver.Chrome(options=self.options)
+        self.driver = webdriver.Chrome()
+        options = webdriver.ChromeOptions()
+
+        options.add_argument('--headless=new')
+        self.url = ''
+        self.ticket_type = None
+        self.source = None
+        self.destination = None
+        self.leaving_type = None
+        # self.leaving_date_time = None
+        # self.returning_type = None
+        # self.return_date_time = None
+        # self.adults = None
+        # self.children = None
+        # self.railcards = None
+        self.leaving_date = None
+        self.leaving_time = None
+
+    def run_scraper(self,source=None, destination=None, leaving_date=None, leaving_time=None,
+                     ticket_type="oneWay", leaving_type="Leave%20After"):
+
+
+        # date_is = leaving_date_time
+
+        self.ticket_type = ticket_type
+        self.source = source
+        self.destination = destination
+        self.leaving_type = leaving_type
+        self.leaving_date = leaving_date
+        self.leaving_time = leaving_time
+        # self.returning_type = returning_type
+        # self.return_date_time = return_date_time
+        # self.adults = adults
+        # self.children = children
+        # self.railcards = railcards
+        # "%Y-%m-%dT%H:%M:%SZ"
+
+        # time_is = ""
+
+        if source is None:
+            raise ValueError("You must specify a source station")
+        elif destination is None:
+            raise ValueError("You must specify a destination station")
+        elif leaving_date is None:
+            raise ValueError("You must specify a leaving date")
+        elif leaving_time is None:
+            raise ValueError("You must specify a leaving time")
+
+        ticket_planner = {
+            "source_station": "NRW",
+            "destination_station": "LST",
+            "outDate": "29%2F05%2F2025",
+            "outTime": "11%3A30",
+            "oadInd": "Leave%20After",
+            "noa": 1,
+            "noc": 0,
+            "rcNum": 0,
+            "rcCode": ""
+        }
+
+        self.url = (f"https://www.buytickets.northernrailway.co.uk/dpi/external/mkt?override_handoff=MATRIX&jt=Single&oriCode={self.source}"
+                    f"&destCode={self.destination}"
+                    f"&outDate={self.leaving_date}&outTime={self.leaving_time}"
+                    f"&oadInd={self.leaving_type}"
+                    f"&noa=1"
+                    f"&noc=0"
+                    f"&rcNum=0"
+                    f"&rcCode=''"
+                    )
+
+
+        # url = "https://www.buytickets.northernrailway.co.uk/dpi/external/mkt?override_handoff=MATRIX&jt=Single&oriCode=NRW&destCode=LST&outDate=29%2F05%2F2025&outTime=11%3A30&oadInd=Leave%20After&noa=1&noc=0&rcCode=&rcNum=0"
+        self.driver.get(self.url)
+
+        print(self.url)
+        ticket_info = self.scrapper()
+
+
+        self.driver.quit()
+        return ticket_info
+
+    def scrapper(self):
+        scraped_tickets = []
+
+        try:
+            # tickets = driver.find_elements(By.CLASS_NAME, 'ColumnContent-module__alternativesListWrapper__YSLNb')
+            #
+            # print(tickets)
+            #
+            #
+            # print(len(tickets))
+            #
+            # for kls in tickets:
+            #         print('timsd',kls.text)
+
+            departure = self.driver.find_elements(By.CSS_SELECTOR, "[data-test='alternative-price']")
+
+            for departure in departure:
+                current_ticket = {}
+
+                print('departure', departure.text)
+                current_ticket['price'] = float(departure.text[1:-1])
+                current_ticket['url'] = self.url
+
+                scraped_tickets.append(current_ticket)
+
+            return scraped_tickets
+
+        except:
+            return []
 
