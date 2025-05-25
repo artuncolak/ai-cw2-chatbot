@@ -1,7 +1,9 @@
 
-from scraper import MyTrainScrapper, NationalRailScraper
+from scraper import MyTrainScraper, NationalRailScraper, NorthernRailwayScraper
 from station import StationService
 from datetime import datetime
+
+# from backend.scraper import NorthernRailwayScraper
 
 
 class Task1:
@@ -12,9 +14,10 @@ class Task1:
         self.time_of_travel = None
         self.date_of_travel = None
         self.confirmed = False
-        self.__mytrain_scraper = MyTrainScrapper()
+        self.__mytrain_scraper = MyTrainScraper()
         self.__national_scraper = NationalRailScraper()
         self.__station_service = StationService()
+        self.__northern_rail_scraper = NorthernRailwayScraper()
 
 
 
@@ -89,40 +92,70 @@ class Task1:
         # print(datetime_object)
         formatted_date_string = datetime_object.strftime("%Y-%m-%dT%H:%M:%SZ")
         # print(formatted_date_string)
+
+        north_month = datetime_object.strftime("%m")
+        north_date= datetime_object.strftime("%d")
+        north_min = datetime_object.strftime("%M")
+        north_hour = datetime_object.strftime("%H")
+        # print(now.strftime("%I:%M %p"))
+
+        # print(formatted_date_string1, formatted_date_string2, formatted_date_string3, formatted_date_string4)
+        # print(formatted_date_string.strftime("%B %d"))
+        # "29%2F05%2F2025"
+        north_date_format = f"{north_date}%2F0{north_month}%2F02025"
+        north_time_format = f"{north_hour}%3A{north_min}"
+
         ticket = []
+
+        # return "sorry_no_station"
         if len(source_station) == 0 or len(dest_station) == 0:
             self.remove_all_info()
             return "sorry_no_station"
 
         else:
-#            m_ticket = self.__mytrain_scraper.run_scrapper(
-#                source=source_station[0].my_train_code,
-#                destination=dest_station[0].my_train_code,
-#                leaving_date_time=formatted_date_string,
-#                leaving_type="DepartingAt",
-#                returning_type=None,
-#                return_date_time=None,
-#                adults=1,
-#                children=0,
-#                railcards=[['YNG', 1]],
-#            )
-            n_ticket = self.__national_scraper.run_scrapper(
-                source=source_station[0].code,
-                destination=dest_station[0].code,
-                leaving_date_time=formatted_date_string,
-                leaving_type="DepartingAt",
-                returning_type=None,
-                return_date_time=None,
-                adults=1,
-                children=0,
-                railcards=[['YNG', 1]],
-            )
-#            print(m_ticket)
-#            if type(m_ticket) is not str:
-#                ticket.extend(m_ticket)
-            ticket.extend(n_ticket)
+           m_ticket = self.__mytrain_scraper.run_scrapper(
+               source=source_station[0].my_train_code,
+               destination=dest_station[0].my_train_code,
+               leaving_date_time=formatted_date_string,
+               leaving_type="DepartingAt",
+               returning_type=None,
+               return_date_time=None,
+               adults=1,
+               children=0,
+               railcards=[['YNG', 1]],)
 
-            print(ticket)
+           north_ticket = self.__northern_rail_scraper.run_scraper(
+               source=source_station[0].code,
+               destination=dest_station[0].code,
+               leaving_date=north_date_format,
+               leaving_time=north_time_format,
+               leaving_type="DepartingAt",
+               )
+           #
+           # n_ticket = self.__national_scraper.run_scrapper(
+           #      source=source_station[0].code,
+           #      destination=dest_station[0].code,
+           #      leaving_date_time=formatted_date_string,
+           #      leaving_type="DepartingAt",
+           #      returning_type=None,
+           #      return_date_time=None,
+           #      adults=1,
+           #      children=0,
+           #      railcards=[['YNG', 1]],
+           #  )
+#            print(m_ticket)
+
+           if len(m_ticket) != 0:
+               ticket.extend(m_ticket)
+
+           # if type(n_ticket) is not str:
+           #      ticket.extend(n_ticket)
+
+           # print(north_ticket)
+           if len(north_ticket) != 0:
+               ticket.extend(north_ticket)
+
+        print(ticket)
 
         if len(ticket) == 0:
             self.remove_all_info()

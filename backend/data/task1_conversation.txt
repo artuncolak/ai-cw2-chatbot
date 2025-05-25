@@ -14,3 +14,10 @@ Is my train delayed?
 current station is Ipswich
 destination station is Liverpool Street London
 8 mins
+
+Hi
+I need to find a ticket
+source is Norwich
+destination is Liverpool Street London
+May 29
+after 11:30 AM
