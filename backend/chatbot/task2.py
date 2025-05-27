@@ -56,6 +56,7 @@ class Task2:
         self.current_station = None
         self.destination_station = None
         self.confirmed = False
+        self.delay = None
 
     def search_current_station(self):
         print("search_current_station1", self.get_current_station().strip())

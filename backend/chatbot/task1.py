@@ -170,6 +170,7 @@ class Task1:
                     mindict = item
         except:
             # raise ConnectionError("Could not connect to website")
+            self.remove_all_info()
             return "sorry_task1"
 
 

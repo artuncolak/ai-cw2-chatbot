@@ -1,23 +1,26 @@
-Hi.
-I would like to book a train ticket.
-Source station would be ---
-Destination is --- [issue noted that spacy don't pick some cities as GPE as it should like Norwich, Glasgow]
-My date of travel will be <a date - April 23, 23rd April>
-I will be leaving at <time - 11:00, 11 AM, 12 PM>
-
-
-
-// in future we can add more ways to catch same context. Right now matcher matches for source and destination keywords.
-
-hi
-Is my train delayed?
-current station is Ipswich
-destination station is Liverpool Street London
-8 mins
-
+TASK-1 ----------------------
 Hi
 I need to find a ticket
 source is Norwich
 destination is Liverpool Street London
 May 29
 after 11:30 AM
+
+
+Find me a ticket from Norwich to Liverpool Street London for tomorrow, 11:00 AM
+TASK-2 ----------------------
+
+Hi
+Is my train delayed?
+current station is Manningtree
+destination station is Liverpool Street London
+8 mins
+
+
+find the delay from Ipswich to Liverpool Street London, given 7 mins delay here.
+
+TASK-3 ------------------------------------
+hi
+
+
+

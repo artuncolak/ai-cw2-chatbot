@@ -74,7 +74,7 @@ class TrainBot(KnowledgeEngine):
 
     @DefFacts()
     def default_response(self):
-        set_response('I am not sure how to respond.')
+        # set_response('I am not sure how to respond.')
         yield Fact(Greeting="I am not sure how to respond.")
 
         # for fact in contingencies:

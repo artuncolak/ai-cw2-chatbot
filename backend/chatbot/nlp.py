@@ -136,7 +136,7 @@ class NLP:
                     print(token.text, token.lemma_, token.ent_type_, token.tag_)
                     if token.lemma_ == "to":
                         destination_name = ""
-                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS", "NNS"] and token.ent_type_ is not "DATE":
+                    if token.ent_type_ == "GPE" or token.tag_ in ["NNP", "NNPS", ] and token.ent_type_ is not "DATE":
 
                         destination_name += token.text.capitalize() + " "
 
@@ -281,19 +281,20 @@ class NLP:
                         current_station = self.__task2.search_current_station()
                         destination_station = self.__task2.search_destination_station()
 
-                        print(current_station[0].code)
-                        print(destination_station[0].code)
+
 
                         if len(current_station) == 0 or len(destination_station) == 0:
                             next_response = "sorry_no_station"
                             self.__task2.remove_all_info()
                         else:
+                            print(current_station[0].code)
+                            print(destination_station[0].code)
                             try:
-                                print('PRediction')
+                                # print('PRdiction')
                                 prediction = prediction_service.predict_arrival_time(
-                                current_station='IPS', destination_station='LST', current_delay=8
+                                current_station=current_station[0].code, destination_station=destination_station[0].code, current_delay=int(self.__task2.get_delay().strip())
                                 )
-                                # print(prediction)
+                                print(prediction)
                                 self.__task2.remove_all_info()
                                 return "<b>Delay at " + prediction['destination'] + ": </b> <span class='text-rose-700 font-semibold'>" + str(prediction['propagated_delay']) + " min. </span>" + "<br> Current Time: " + prediction['current_time'] + "<br> <b>ETA:</b> " + prediction['predicted_arrival_time'] + "<br> Estimated Journey time: " + str(prediction['estimated_journey_time']) + " min."
                             except:
