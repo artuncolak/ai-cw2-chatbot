@@ -481,7 +481,7 @@ def get_test_prediction_service() -> PredictionService:
     print("Ann accuracy: " + str(avg_precision_at_k(1)))
     cosine_avg, dot_product_avg = avg_cosine_and_dot_product_of_ann(1)
     print("Cosine accuracy: " + str(cosine_avg))
-    print("Dot product accuracy: " + str(dot_product_avg))
+    print("Normalised dot product accuracy: " + str(dot_product_avg))
     end_time = time.time()
     print("In " + str(end_time - start_time) + " seconds.")
 
