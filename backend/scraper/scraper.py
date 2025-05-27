@@ -284,43 +284,119 @@ class MyTrainScraper:
         return ticketinfo
 
     def scrapper(self):
-        tickets = self.driver.find_elements(By.CLASS_NAME, 'journey')
-
+        # Wait for page to load
+        import time
+        time.sleep(5)
+        
+        # Try different selectors for journey containers
+        journey_containers = []
+        
+        # Method 1: Look for journey-wrapper class (new structure)
+        journey_containers = self.driver.find_elements(By.CLASS_NAME, 'journey-wrapper')
+        
+        # Method 2: If not found, look for journey class (old structure)
+        if not journey_containers:
+            journey_containers = self.driver.find_elements(By.CLASS_NAME, 'journey')
+        
+        # Method 3: If still not found, look for any div with data-v attributes containing journey info
+        if not journey_containers:
+            journey_containers = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'journey')]")
+        
+        print(f"Found {len(journey_containers)} journey containers")
+        
         scraped_tickets = []
 
         try:
-            for ticket in tickets:
+            for container in journey_containers:
                 current_ticket = {}
-
-                #            timee = ticket.find_elements(By.CLASS_NAME,'journey-time')
-                #            timsd = ticket.find_elements(By.XPATH,"//div[@class='journey-start']/div[@class='out-time-wrapper']/p[1]")
-                #
-                #            for kls in timsd:
-                #                print('timsd',kls.text)
-                #
-                #            for kk in timee:
-                #                print(kk.text)
-
-                prices = ticket.find_elements(By.CLASS_NAME, 'standard-fare-selection')
-                # print('price',len(price))
-                for price in prices:
-                    #                print(".".join(re.findall("\d+", jj.text)[0:2]))
-                    current_ticket['price'] = float(".".join(re.findall("\d+", price.text)[0:2]))
-
-                durations = ticket.find_elements(By.CLASS_NAME, 'journey-meta')
-                # print('duration',len(duration))
-
-                for duration in durations:
-
-                    #                print(th.text)
-                    if len(duration.text) > 0:
-                        current_ticket['duration'], current_ticket['changeovers'] = duration.text.split(", ")
-
-                #            leave_times = ticket.find_elements(By.XPATH, "//div[@class='journey-start']/div[@class='out-time-wrapper']/p[1]")
-                #            for leave_time in leave_times:
-                #                if len(leave_time.text) > 0:
-                #                    current_ticket['leaveTime'] = leave_time.text
-
+                price_found = False
+                
+                # Method 1: Look for standard-fare-selection (new structure)
+                fare_selections = container.find_elements(By.CLASS_NAME, 'standard-fare-selection')
+                for fare_selection in fare_selections:
+                    # Look for label elements containing price
+                    labels = fare_selection.find_elements(By.TAG_NAME, 'label')
+                    for label in labels:
+                        label_text = label.text.strip()
+                        if '£' in label_text:
+                            # Extract price using regex
+                            price_match = re.search(r'£(\d+\.?\d*)', label_text)
+                            if price_match:
+                                current_ticket['price'] = float(price_match.group(1))
+                                price_found = True
+                                print(f"Found price via label: £{current_ticket['price']}")
+                                break
+                    if price_found:
+                        break
+                
+                # Method 2: Look for aria-label attributes in input elements
+                if not price_found:
+                    inputs = container.find_elements(By.TAG_NAME, 'input')
+                    for input_elem in inputs:
+                        aria_label = input_elem.get_attribute('aria-label')
+                        if aria_label and '£' in aria_label:
+                            price_match = re.search(r'£(\d+\.?\d*)', aria_label)
+                            if price_match:
+                                current_ticket['price'] = float(price_match.group(1))
+                                price_found = True
+                                print(f"Found price via aria-label: £{current_ticket['price']}")
+                                break
+                
+                # Method 3: Look for any span containing price (fallback)
+                if not price_found:
+                    spans = container.find_elements(By.TAG_NAME, 'span')
+                    for span in spans:
+                        span_text = span.text.strip()
+                        if '£' in span_text and 'Cheapest' not in span_text:
+                            price_match = re.search(r'£(\d+\.?\d*)', span_text)
+                            if price_match:
+                                current_ticket['price'] = float(price_match.group(1))
+                                price_found = True
+                                print(f"Found price via span: £{current_ticket['price']}")
+                                break
+                
+                # Method 4: Old structure fallback
+                if not price_found:
+                    old_prices = container.find_elements(By.CLASS_NAME, 'standard-fare-selection')
+                    for price in old_prices:
+                        price_text = price.text.strip()
+                        if price_text:
+                            price_numbers = re.findall(r"\d+", price_text)
+                            if len(price_numbers) >= 2:
+                                current_ticket['price'] = float(".".join(price_numbers[0:2]))
+                                price_found = True
+                                print(f"Found price via old method: £{current_ticket['price']}")
+                                break
+                
+                # Skip if no price found
+                if not price_found:
+                    print("No price found for this container, skipping...")
+                    continue
+                
+                # Get journey times
+                time_elements = container.find_elements(By.CLASS_NAME, 'journey-time')
+                if len(time_elements) >= 2:
+                    current_ticket['leaveTime'] = time_elements[0].text.strip()
+                    current_ticket['arriveTime'] = time_elements[1].text.strip()
+                elif len(time_elements) == 1:
+                    current_ticket['leaveTime'] = time_elements[0].text.strip()
+                
+                # Get duration and changes from journey-meta
+                meta_elements = container.find_elements(By.CLASS_NAME, 'journey-meta')
+                for meta in meta_elements:
+                    meta_text = meta.text.strip()
+                    if meta_text and ('hr' in meta_text or 'min' in meta_text):
+                        # Parse duration and changes
+                        if ', ' in meta_text:
+                            parts = meta_text.split(', ')
+                            current_ticket['duration'] = parts[0].strip()
+                            current_ticket['changeovers'] = parts[1].strip()
+                        else:
+                            current_ticket['duration'] = meta_text
+                            current_ticket['changeovers'] = '0 change'
+                        break
+                
+                # Add other required fields
                 current_ticket['ticketType'] = self.ticket_type
                 current_ticket['origin'] = self.source
                 current_ticket['destination'] = self.destination
@@ -333,13 +409,15 @@ class MyTrainScraper:
                 current_ticket['children'] = self.children
                 current_ticket['railcards'] = self.railcards
                 current_ticket['url'] = self.url
-
-                #            print(current_ticket)
+                
                 scraped_tickets.append(current_ticket)
-            #            print('---'*5)
-
+                print(f"Added ticket: {current_ticket}")
+                
+            print(f"Total tickets scraped: {len(scraped_tickets)}")
             return scraped_tickets
-        except:
+            
+        except Exception as e:
+            print(f"Error in scrapper: {e}")
             return []
 
 
