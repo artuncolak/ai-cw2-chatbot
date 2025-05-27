@@ -3,8 +3,8 @@ Hi
 I need to find a ticket
 source is Norwich
 destination is Liverpool Street London
-May 29
-after 11:30 AM
+June 2
+after 04:30 PM
 
 
 Find me a ticket from Norwich to Liverpool Street London for tomorrow, 11:00 AM
@@ -21,6 +21,12 @@ find the delay from Ipswich to Liverpool Street London, given 7 mins delay here.
 
 TASK-3 ------------------------------------
 hi
+
+There is partial line blockage between Norwich and Diss
+
+I would like to report a full line blockage
+between Manningtree and Colchester
+
 
 
 
