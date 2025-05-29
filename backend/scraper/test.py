@@ -1,4 +1,5 @@
-from scraper import MyTrainScrapper, NationalRailScraper
+from twisted.internet.defer import ensureDeferred
+from scraper import MyTrainScraper, NationalRailScraper
 #from station import StationService
 
 #source_station = StationService.get_by_code("NRW")
@@ -9,19 +10,22 @@ from scraper import MyTrainScrapper, NationalRailScraper
 scraped_tickets = []
 
 __nrscrapper = NationalRailScraper()
-scraped_tickets.extend(__nrscrapper.run_scrapper(
-    ticket_type="oneWay",
-    source="NRW",
-    destination="KGX",
-    leaving_type="DepartingAt",
-    leaving_date_time="2025-06-01T07:00:00Z",
-    returning_type=None,
-    return_date_time=None,
-    adults=1,
-    children=0,
-    railcards=[['YNG', 1]],
-))
+scraperfunction = __nrscrapper.run_scrapper(
+        ticket_type="oneWay",
+        source="NRW",
+        destination="KGX",
+        leaving_type="DepartingAt",
+        leaving_date_time="2025-06-01T07:00:00Z",
+        returning_type=None,
+        return_date_time=None,
+        adults=1,
+        children=0,
+        railcards=[['YNG', 1]],
+    )
+async def get_nrscraper():
+    scraped_tickets.extend(await scraperfunction)
 
+ensureDeferred(get_nrscraper())
 
 #__mtscrapper = MyTrainScrapper()
 #scraped_tickets.extend(__mtscrapper.run_scrapper(

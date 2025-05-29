@@ -1,4 +1,4 @@
-
+from twisted.internet.defer import ensureDeferred
 from scraper import MyTrainScraper, NationalRailScraper, NorthernRailwayScraper
 from station import StationService
 from datetime import datetime
@@ -113,47 +113,57 @@ class Task1:
             return "sorry_no_station"
 
         else:
-           m_ticket = self.__mytrain_scraper.run_scrapper(
-               source=source_station[0].my_train_code,
-               destination=dest_station[0].my_train_code,
-               leaving_date_time=formatted_date_string,
-               leaving_type="DepartingAt",
-               returning_type=None,
-               return_date_time=None,
-               adults=1,
-               children=0,
-               railcards=[['YNG', 1]],)
 
-           north_ticket = self.__northern_rail_scraper.run_scraper(
-               source=source_station[0].code,
-               destination=dest_station[0].code,
-               leaving_date=north_date_format,
-               leaving_time=north_time_format,
-               leaving_type="DepartingAt",
-               )
-           #
-           # n_ticket = self.__national_scraper.run_scrapper(
-           #      source=source_station[0].code,
-           #      destination=dest_station[0].code,
-           #      leaving_date_time=formatted_date_string,
-           #      leaving_type="DepartingAt",
-           #      returning_type=None,
-           #      return_date_time=None,
-           #      adults=1,
-           #      children=0,
-           #      railcards=[['YNG', 1]],
-           #  )
-#            print(m_ticket)
+            try:
+                n_ticket = self.__national_scraper.run_scrapper(
+                     source=source_station[0].code,
+                     destination=dest_station[0].code,
+                     leaving_date_time=formatted_date_string,
+                     leaving_type="DepartingAt",
+                     returning_type=None,
+                     return_date_time=None,
+                     adults=1,
+                     children=0,
+                     railcards=[['YNG', 1]],
+                 )
+                async def get_nrscraper():
+                     if len(await n_ticket) != 0:
+                         ticket.extend(await n_ticket)
+                ensureDeferred(get_nrscraper())
+#                print(n_ticket)
+            except:
+                pass
 
-           if len(m_ticket) != 0:
-               ticket.extend(m_ticket)
+            try:
+               m_ticket = self.__mytrain_scraper.run_scrapper(
+                   source=source_station[0].my_train_code,
+                   destination=dest_station[0].my_train_code,
+                   leaving_date_time=formatted_date_string,
+                   leaving_type="DepartingAt",
+                   returning_type=None,
+                   return_date_time=None,
+                   adults=1,
+                   children=0,
+                   railcards=[['YNG', 1]],)
+               if len(m_ticket) != 0:
+                   ticket.extend(m_ticket)
+#               print(m_ticket)
+            except:
+                pass
 
-           # if type(n_ticket) is not str:
-           #      ticket.extend(n_ticket)
-
-           # print(north_ticket)
-           if len(north_ticket) != 0:
-               ticket.extend(north_ticket)
+            try:
+                north_ticket = self.__northern_rail_scraper.run_scraper(
+                    source=source_station[0].code,
+                    destination=dest_station[0].code,
+                    leaving_date=north_date_format,
+                    leaving_time=north_time_format,
+                    leaving_type="DepartingAt",
+                    )
+                if len(north_ticket) != 0:
+                    ticket.extend(north_ticket)
+#                print(north_ticket)
+            except:
+                pass
 
         print(ticket)
 
