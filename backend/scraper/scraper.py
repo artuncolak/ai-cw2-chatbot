@@ -6,7 +6,9 @@ from scrapy.signalmanager import dispatcher
 from scrapy.crawler import CrawlerProcess
 from scrapy_playwright.page import PageMethod
 import re
-
+import asyncio
+from twisted.internet import asyncioreactor
+import nest_asyncio
 
 class TicketItem(scrapy.Item):
     duration = scrapy.Field()
@@ -120,15 +122,21 @@ class NationalRailSpider(scrapy.Spider):
             ticket_field['children'] = self.children
             ticket_field['railcards'] = self.railcards
             ticket_field['url'] = self.url
-            yield ticket_field
+            return ticket_field
 
 
 class NationalRailScraper:
 
     def __init__(self):
         self.url = ''
+        try:
+            asyncioreactor.install(asyncio.get_event_loop())
+        except:
+            pass
+#        self.loop = asyncio.get_event_loop()
+        nest_asyncio.apply()
 
-    def run_scrapper(self, source=None, destination=None, leaving_date_time=None,
+    async def run_scrapper(self, source=None, destination=None, leaving_date_time=None,
                      returning_type=None, return_date_time=None, adults=1, children=0, 
                      railcards=[], leaving_type="DepartingAt", ticket_type="oneWay"):
         ticket_planner = {}
