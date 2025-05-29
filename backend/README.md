@@ -31,12 +31,23 @@
 
    The default values in `.env.example` are configured to work with the Docker container above. If you're using a different database setup, modify the values in `.env` accordingly.
 
+## Qdrant Installation
+
+To start the Qdrant vector database using Docker:
+
+```bash
+docker run -d --name qdrant \
+  -p 6333:6333 \
+  qdrant/qdrant
+```
+
 ## Running the Application
 
 1. Make sure you're in the project root directory and your virtual environment is activated
 
 2. Start the server:
    ```bash
+   run the docker instance qdrant (needed for task 2)
    uv run main.py
    ```
 
@@ -117,15 +128,7 @@ Each station record contains the following fields:
 - `anglia_code`: Anglia code
 - `national_rail_code`: National Rail code
 
-## Qdrant Installation
 
-To start the Qdrant vector database using Docker:
-
-```bash
-docker run -d --name qdrant \
-  -p 6333:6333 \
-  qdrant/qdrant
-```
 
 This command:
 

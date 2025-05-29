@@ -50,6 +50,7 @@ source = { editable = "." }
 dependencies = [
     { name = "experta" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "nest-asyncio" },
     { name = "pandas" },
     { name = "pip" },
     { name = "psycopg2-binary" },
@@ -69,6 +70,7 @@ dependencies = [
 requires-dist = [
     { name = "experta", specifier = ">=1.9.4" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.11" },
+    { name = "nest-asyncio", specifier = "==1.6.0" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pip", specifier = ">=25.0.1" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
@@ -745,6 +747,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e8/78/2df6cdce439f6b8509d7947b8c47e7fe2589671899eb6399f4e2f602fe1f/murmurhash-1.0.12-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:b078c10f9c82cbd144b1200061fbfa7f99af9d5d8d7f7d8a324370169e3da7c2", size = 131134 },
     { url = "https://files.pythonhosted.org/packages/43/0b/f0a5a622c505786d3d1dc1ad3e7f6b6fbfcae2665b205e07b3882185c39f/murmurhash-1.0.12-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:307ca8da5f038635ded9de722fe11f07f06a2b76442ae272dcccbff6086de487", size = 128630 },
     { url = "https://files.pythonhosted.org/packages/de/30/ceb9217cdba72bc0bf8466e373e12e5a42945cc85eda0a7c479e319e07ae/murmurhash-1.0.12-cp311-cp311-win_amd64.whl", hash = "sha256:1b4ab5ba5ba909959659989f3bf57903f31f49906fe40f00aec81e32eea69a88", size = 25417 },
+]
+
+[[package]]
+name = "nest-asyncio"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/f8/51569ac65d696c8ecbee95938f89d4abf00f47d58d48f6fbabfe8f0baefe/nest_asyncio-1.6.0.tar.gz", hash = "sha256:6f172d5449aca15afd6c646851f4e31e02c598d553a667e38cafa997cfec55fe", size = 7418 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl", hash = "sha256:87af6efd6b5e897c81050477ef65c62e2b2f35d51703cae01aff2905b1852e1c", size = 5195 },
 ]
 
 [[package]]
